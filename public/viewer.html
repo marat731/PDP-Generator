@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Walmart Product Mockup</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="control-panel">
+        <h1><div class="walmart-spark"></div>Walmart Product Mockup</h1>
+        <div class="control-buttons">
+            <span id="viewCount" style="font-size: 13px;"></span>
+        </div>
+    </div>
+
+    <div id="passwordPrompt" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-title">🔒 Password Required</h2>
+            <p>This mockup is password protected.</p>
+            <div class="form-group" style="margin-top: 20px;">
+                <input type="password" id="passwordField" placeholder="Enter password" style="width: 100%; padding: 12px; border: 2px solid var(--border-color); border-radius: 6px;">
+            </div>
+            <button class="btn btn-primary" onclick="submitPassword()" style="margin-top: 16px; width: 100%;">View Mockup</button>
+            <div id="passwordError" style="color: red; margin-top: 12px; display: none;">Incorrect password</div>
+        </div>
+    </div>
+
+    <div class="preview-area" id="mockupContent" style="margin-top: 70px; display: none;">
+        <div class="walmart-pdp">
+            <div class="pdp-breadcrumb">Home / Electronics / Product</div>
+            <div class="pdp-content">
+                <div class="product-images">
+                    <div class="thumbnail-strip" id="thumbnailStrip"></div>
+                    <div class="main-image" id="mainImage"></div>
+                </div>
+                <div class="product-info">
+                    <div class="product-brand" id="displayBrand"></div>
+                    <h1 class="product-title" id="displayTitle"></h1>
+                    <div class="product-rating">
+                        <span class="stars" id="displayStars"></span>
+                        <span class="rating-count" id="displayRating"></span>
+                    </div>
+                    <div class="product-price" id="displayPrice"></div>
+                    <div class="price-info">Price when purchased online</div>
+                    <div class="walmart-plus">
+                        <div class="walmart-plus-logo">Walmart+</div>
+                        <div style="font-size: 13px;">Free delivery</div>
+                    </div>
+                    <button class="add-to-cart-btn">Add to cart</button>
+                </div>
+            </div>
+            <div class="product-details-section">
+                <h2 class="details-title">Product details</h2>
+                <div class="product-description" id="displayDescription"></div>
+                <div class="product-features">
+                    <h3 class="features-title">Key Features</h3>
+                    <ul class="features-list" id="displayFeatures"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentImageIndex = 0;
+        let mockupData = null;
+
+        async function loadMockup(password = null) {
+            const id = window.location.pathname.split('/mockup/')[1];
+            if (!id) return;
+
+            try {
+                const url = password ? `/api/mockups/${id}?password=${encodeURIComponent(password)}` : `/api/mockups/${id}`;
+                const response = await fetch(url);
+                const result = await response.json();
+
+                if (result.passwordProtected) {
+                    document.getElementById('passwordPrompt').classList.add('active');
+                    return;
+                }
+
+                if (!result.success) {
+                    alert('Mockup not found');
+                    return;
+                }
+
+                mockupData = result.data;
+                document.getElementById('passwordPrompt').classList.remove('active');
+                document.getElementById('mockupContent').style.display = 'block';
+                document.getElementById('viewCount').textContent = `Views: ${result.views}`;
+                renderMockup();
+            } catch (error) {
+                console.error('Error loading mockup:', error);
+            }
+        }
+
+        function submitPassword() {
+            const password = document.getElementById('passwordField').value;
+            loadMockup(password).catch(() => {
+                document.getElementById('passwordError').style.display = 'block';
+            });
+        }
+
+        function renderMockup() {
+            if (!mockupData) return;
+
+            document.getElementById('displayBrand').textContent = mockupData.brand || 'Brand';
+            document.getElementById('displayTitle').textContent = mockupData.title || 'Product';
+            document.getElementById('displayPrice').textContent = mockupData.price ? `$${parseFloat(mockupData.price).toFixed(2)}` : '$0.00';
+            document.getElementById('displayDescription').textContent = mockupData.description || '';
+
+            const rating = parseFloat(mockupData.rating) || 0;
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 >= 0.5;
+            let stars = '★'.repeat(fullStars);
+            if (hasHalfStar) stars += '☆';
+            stars += '☆'.repeat(5 - fullStars - (hasHalfStar ? 1 : 0));
+            document.getElementById('displayStars').textContent = stars;
+            document.getElementById('displayRating').textContent = `(${mockupData.reviews || 0})`;
+
+            const bullets = mockupData.bullets?.filter(b => b.trim()) || [];
+            document.getElementById('displayFeatures').innerHTML = bullets.length ? bullets.map(b => `<li>${b}</li>`).join('') : '<li>No features</li>';
+
+            if (mockupData.images && mockupData.images.length > 0) {
+                updateImageDisplay();
+            }
+        }
+
+        function updateImageDisplay() {
+            const images = mockupData.images;
+            document.getElementById('mainImage').innerHTML = `<img src="${images[currentImageIndex]}">`;
+            document.getElementById('thumbnailStrip').innerHTML = images.map((img, i) => `
+                <div class="thumbnail ${i === currentImageIndex ? 'active' : ''}" onclick="changeImage(${i})">
+                    <img src="${img}">
+                </div>
+            `).join('');
+        }
+
+        function changeImage(index) {
+            currentImageIndex = index;
+            updateImageDisplay();
+        }
+
+        loadMockup();
+    </script>
+</body>
+</html>
