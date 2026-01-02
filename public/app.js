@@ -161,16 +161,29 @@ async function saveMockup() {
         const data = getMockupData();
         const password = document.getElementById('passwordInput').value;
         
-        const response = await fetch('/api/mockups', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ data, password: password || null })
-        });
+        let response;
+        if (currentMockupId) {
+            // Update existing
+            response = await fetch(`/api/mockups/${currentMockupId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data, password: password || null })
+            });
+        } else {
+            // Create new
+            response = await fetch('/api/mockups', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data, password: password || null })
+            });
+        }
         
         const result = await response.json();
         
         if (result.success) {
-            currentMockupId = result.id;
+            if (!currentMockupId) {
+                currentMockupId = result.id;
+            }
             saveStatus.textContent = 'Saved!';
             saveStatus.classList.add('saved');
             setTimeout(() => {
@@ -178,7 +191,9 @@ async function saveMockup() {
                 saveStatus.classList.remove('saved');
             }, 2000);
             
-            document.getElementById('shareUrl').textContent = result.url;
+            const baseUrl = window.location.origin;
+            document.getElementById('shareUrl').textContent = `${baseUrl}/mockup/${currentMockupId}`;
+            document.getElementById('editUrl').textContent = `${baseUrl}/?id=${currentMockupId}${password ? '&pw=' + password : ''}`;
             document.getElementById('passwordNote').style.display = password ? 'inline' : 'none';
             document.getElementById('shareModal').classList.add('active');
         }
@@ -192,7 +207,17 @@ async function saveMockup() {
 function copyUrl() {
     const url = document.getElementById('shareUrl').textContent;
     navigator.clipboard.writeText(url).then(() => {
-        const btn = document.querySelector('.copy-btn');
+        const btn = event.target;
+        const original = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = original, 2000);
+    });
+}
+
+function copyEditUrl() {
+    const url = document.getElementById('editUrl').textContent;
+    navigator.clipboard.writeText(url).then(() => {
+        const btn = event.target;
         const original = btn.textContent;
         btn.textContent = 'Copied!';
         setTimeout(() => btn.textContent = original, 2000);
@@ -205,6 +230,102 @@ function closeModal() {
 
 function newMockup() {
     if (confirm('Start a new mockup? Current work will be cleared.')) {
-        location.reload();
+        window.location.href = '/';
     }
 }
+
+function loadExisting() {
+    document.getElementById('loadModal').classList.add('active');
+}
+
+function closeLoadModal() {
+    document.getElementById('loadModal').classList.remove('active');
+    document.getElementById('loadIdInput').value = '';
+    document.getElementById('loadPasswordInput').value = '';
+    document.getElementById('loadError').style.display = 'none';
+}
+
+async function submitLoad() {
+    const input = document.getElementById('loadIdInput').value.trim();
+    const password = document.getElementById('loadPasswordInput').value;
+    
+    if (!input) {
+        document.getElementById('loadError').textContent = 'Please enter a mockup ID or URL';
+        document.getElementById('loadError').style.display = 'block';
+        return;
+    }
+    
+    // Extract ID from URL or use as-is
+    let id = input;
+    if (input.includes('/mockup/')) {
+        id = input.split('/mockup/')[1].split('?')[0];
+    } else if (input.includes('?id=')) {
+        id = new URLSearchParams(input.split('?')[1]).get('id');
+    }
+    
+    try {
+        const url = password ? `/api/mockups/${id}?password=${encodeURIComponent(password)}` : `/api/mockups/${id}`;
+        const response = await fetch(url);
+        const result = await response.json();
+        
+        if (!result.success) {
+            document.getElementById('loadError').textContent = result.error || 'Failed to load mockup';
+            document.getElementById('loadError').style.display = 'block';
+            return;
+        }
+        
+        // Load the data
+        currentMockupId = id;
+        const data = result.data;
+        
+        document.getElementById('brandInput').value = data.brand || '';
+        document.getElementById('titleInput').value = data.title || '';
+        document.getElementById('priceInput').value = data.price || '';
+        document.getElementById('ratingInput').value = data.rating || '';
+        document.getElementById('reviewsInput').value = data.reviews || '';
+        document.getElementById('descriptionInput').value = data.description || '';
+        document.getElementById('passwordInput').value = password || '';
+        
+        uploadedImages = data.images || [];
+        updateImagePreviews();
+        updateMainDisplay();
+        
+        // Load bullets
+        const bulletList = document.getElementById('bulletList');
+        bulletList.innerHTML = '';
+        (data.bullets || ['']).forEach((bullet, i) => {
+            const div = document.createElement('div');
+            div.className = 'bullet-item';
+            div.innerHTML = `<input type="text" placeholder="Feature ${i+1}" class="bullet-input" value="${bullet}"><button class="bullet-remove" onclick="removeBullet(this)">✕</button>`;
+            bulletList.appendChild(div);
+        });
+        
+        // Trigger all updates
+        document.getElementById('brandInput').dispatchEvent(new Event('input'));
+        document.getElementById('titleInput').dispatchEvent(new Event('input'));
+        document.getElementById('priceInput').dispatchEvent(new Event('input'));
+        document.getElementById('ratingInput').dispatchEvent(new Event('input'));
+        document.getElementById('reviewsInput').dispatchEvent(new Event('input'));
+        document.getElementById('descriptionInput').dispatchEvent(new Event('input'));
+        updateBulletDisplay();
+        
+        closeLoadModal();
+    } catch (error) {
+        console.error('Error loading mockup:', error);
+        document.getElementById('loadError').textContent = 'Error loading mockup';
+        document.getElementById('loadError').style.display = 'block';
+    }
+}
+
+// Check URL params on load
+window.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    const pw = params.get('pw');
+    
+    if (id) {
+        document.getElementById('loadIdInput').value = id;
+        if (pw) document.getElementById('loadPasswordInput').value = pw;
+        submitLoad();
+    }
+});
