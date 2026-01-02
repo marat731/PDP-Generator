@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Walmart Product Mockup</title>
+    <style>
+        @font-face {
+            font-family: 'Bogle';
+            src: local('Bogle'), local('Arial');
+            font-weight: 400;
+        }
+        @font-face {
+            font-family: 'Bogle';
+            src: local('Bogle Bold'), local('Arial Bold');
+            font-weight: 700;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --color-core-blue-100: #0071dc;
+            --color-core-blue-130: #004f9a;
+            --color-core-blue-160: #002d58;
+            --color-core-spark-100: #ffc220;
+            --color-core-green-100: #2a8703;
+            --color-core-gray-160: #2e2f32;
+            --color-core-gray-100: #74767c;
+            --color-core-gray-50: #babbbe;
+            --color-core-gray-20: #e3e4e5;
+            --color-core-gray-10: #f1f1f2;
+            --color-core-white: #fff;
+            --color-core-black: #000;
+        }
+
+        body {
+            font-family: Bogle, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background: var(--color-core-white);
+            color: var(--color-core-gray-160);
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        /* Header */
+        .walmart-header {
+            background: var(--color-core-blue-100);
+            height: 64px;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .walmart-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .spark-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--color-core-spark-100);
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .spark-icon::before {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 100%;
+            background: var(--color-core-spark-100);
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .spark-icon::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 6px;
+            background: var(--color-core-spark-100);
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .walmart-text {
+            color: white;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            font-size: 12px;
+            color: var(--color-core-gray-100);
+            margin-bottom: 16px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .breadcrumb a {
+            color: var(--color-core-gray-100);
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        /* Product Layout - 3 Column */
+        .product-layout {
+            display: grid;
+            grid-template-columns: 456px 1fr 340px;
+            gap: 24px;
+            align-items: start;
+        }
+
+        @media (max-width: 1200px) {
+            .product-layout {
+                grid-template-columns: 1fr 1fr;
+            }
+            .buy-box {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .product-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Product Gallery */
+        .product-gallery {
+            position: sticky;
+            top: 88px;
+        }
+
+        .main-image-container {
+            width: 100%;
+            aspect-ratio: 1;
+            border: 1px solid var(--color-core-gray-20);
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--color-core-white);
+            margin-bottom: 16px;
+        }
+
+        .main-image-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .thumbnail-row {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .thumbnail {
+            width: 64px;
+            height: 64px;
+            border: 2px solid var(--color-core-gray-20);
+            border-radius: 8px;
+            cursor: pointer;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--color-core-white);
+            transition: border-color 0.2s;
+        }
+
+        .thumbnail:hover,
+        .thumbnail.active {
+            border-color: var(--color-core-blue-100);
+        }
+
+        .thumbnail img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        /* Product Info - Center Column */
+        .product-info {
+            padding-right: 24px;
+        }
+
+        .product-brand {
+            font-size: 12px;
+            color: var(--color-core-gray-100);
+            margin-bottom: 4px;
+        }
+
+        .product-brand a {
+            color: inherit;
+            text-decoration: underline;
+        }
+
+        .product-title {
+            font-size: 20px;
+            font-weight: 700;
+            line-height: 1.4;
+            margin-bottom: 12px;
+            color: var(--color-core-gray-160);
+        }
+
+        .rating-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .stars {
+            display: flex;
+            gap: 2px;
+        }
+
+        .star {
+            width: 16px;
+            height: 16px;
+            color: var(--color-core-spark-100);
+        }
+
+        .star-filled {
+            fill: var(--color-core-spark-100);
+        }
+
+        .rating-text {
+            font-size: 14px;
+            color: var(--color-core-gray-100);
+        }
+
+        .rating-text a {
+            color: inherit;
+            text-decoration: underline;
+        }
+
+        /* Product Highlights */
+        .product-highlights {
+            background: var(--color-core-gray-10);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+
+        .highlight-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .highlight-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .highlight-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .highlight-label {
+            font-size: 12px;
+            color: var(--color-core-gray-100);
+        }
+
+        .highlight-value {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* About Section */
+        .about-section {
+            margin-top: 32px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--color-core-gray-20);
+        }
+
+        .product-description {
+            font-size: 14px;
+            line-height: 1.7;
+            color: var(--color-core-gray-160);
+            margin-bottom: 24px;
+        }
+
+        .features-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .features-list li {
+            position: relative;
+            padding-left: 24px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .features-list li::before {
+            content: '•';
+            position: absolute;
+            left: 8px;
+            color: var(--color-core-gray-160);
+            font-weight: 700;
+        }
+
+        /* Buy Box - Right Column */
+        .buy-box {
+            background: var(--color-core-white);
+            border: 1px solid var(--color-core-gray-20);
+            border-radius: 8px;
+            padding: 20px;
+            position: sticky;
+            top: 88px;
+        }
+
+        .price-section {
+            margin-bottom: 16px;
+        }
+
+        .current-price {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--color-core-gray-160);
+        }
+
+        .price-cents {
+            font-size: 20px;
+            vertical-align: super;
+        }
+
+        .unit-price {
+            font-size: 12px;
+            color: var(--color-core-gray-100);
+            margin-top: 4px;
+        }
+
+        .wplus-banner {
+            background: linear-gradient(135deg, var(--color-core-blue-100), var(--color-core-blue-130));
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .wplus-logo {
+            font-weight: 700;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .wplus-text {
+            font-size: 12px;
+        }
+
+        /* Fulfillment Options */
+        .fulfillment-options {
+            margin-bottom: 20px;
+        }
+
+        .fulfillment-option {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--color-core-gray-20);
+        }
+
+        .fulfillment-option:last-child {
+            border-bottom: none;
+        }
+
+        .fulfillment-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--color-core-blue-100);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .fulfillment-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+
+        .fulfillment-details {
+            flex: 1;
+        }
+
+        .fulfillment-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .fulfillment-subtitle {
+            font-size: 12px;
+            color: var(--color-core-gray-100);
+        }
+
+        .fulfillment-action {
+            font-size: 12px;
+            color: var(--color-core-blue-100);
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        /* Quantity & Add to Cart */
+        .quantity-section {
+            margin-bottom: 16px;
+        }
+
+        .quantity-label {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            border: 1px solid var(--color-core-gray-50);
+            border-radius: 24px;
+            width: fit-content;
+        }
+
+        .qty-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 20px;
+            color: var(--color-core-gray-160);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qty-btn:hover {
+            background: var(--color-core-gray-10);
+        }
+
+        .qty-value {
+            width: 48px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .add-to-cart-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--color-core-blue-100);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-bottom: 12px;
+        }
+
+        .add-to-cart-btn:hover {
+            background: var(--color-core-blue-130);
+        }
+
+        .secondary-actions {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
+
+        .secondary-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--color-core-gray-160);
+            text-decoration: underline;
+        }
+
+        /* Seller Info */
+        .seller-info {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--color-core-gray-20);
+            font-size: 12px;
+            color: var(--color-core-gray-100);
+        }
+
+        .seller-info a {
+            color: var(--color-core-blue-100);
+            text-decoration: underline;
+        }
+
+        /* Password Modal */
+        .password-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .password-modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .modal-text {
+            text-align: center;
+            color: var(--color-core-gray-100);
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .password-input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid var(--color-core-gray-20);
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 16px;
+            font-family: inherit;
+        }
+
+        .password-input:focus {
+            outline: none;
+            border-color: var(--color-core-blue-100);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--color-core-blue-100);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .error-message {
+            color: #de1c24;
+            font-size: 14px;
+            text-align: center;
+            margin-top: 12px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .mockup-content {
+            display: none;
+        }
+
+        .mockup-content.loaded {
+            display: block;
+        }
+
+        .placeholder-image {
+            color: var(--color-core-gray-100);
+            text-align: center;
+            padding: 40px;
+        }
+
+        .view-count {
+            font-size: 12px;
+            color: rgba(255,255,255,0.8);
+            margin-left: auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="walmart-header">
+        <div class="walmart-logo">
+            <div class="spark-icon"></div>
+            <span class="walmart-text">Walmart</span>
+        </div>
+        <span class="view-count" id="viewCount"></span>
+    </header>
+
+    <!-- Password Modal -->
+    <div class="password-modal" id="passwordModal">
+        <div class="modal-content">
+            <h2 class="modal-title">🔒 Password Required</h2>
+            <p class="modal-text">This mockup is password protected.</p>
+            <input type="password" class="password-input" id="passwordField" placeholder="Enter password" />
+            <button class="submit-btn" onclick="submitPassword()">View Mockup</button>
+            <div class="error-message" id="errorMessage">Incorrect password</div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="mockup-content" id="mockupContent">
+        <main class="main-container">
+            <nav class="breadcrumb">
+                <a href="#">Home</a>
+                <span>/</span>
+                <a href="#">Food</a>
+                <span>/</span>
+                <a href="#">Pantry</a>
+                <span>/</span>
+                <span id="breadcrumbCategory">Product</span>
+            </nav>
+
+            <div class="product-layout">
+                <!-- Left: Gallery -->
+                <div class="product-gallery">
+                    <div class="main-image-container" id="mainImage">
+                        <div class="placeholder-image">
+                            <div style="font-size: 64px;">📦</div>
+                            <div>No image</div>
+                        </div>
+                    </div>
+                    <div class="thumbnail-row" id="thumbnailRow"></div>
+                </div>
+
+                <!-- Center: Product Info -->
+                <div class="product-info">
+                    <div class="product-brand"><a href="#" id="displayBrand">Brand</a></div>
+                    <h1 class="product-title" id="displayTitle">Product Title</h1>
+                    
+                    <div class="rating-row">
+                        <div class="stars" id="displayStars">
+                            <svg class="star" viewBox="0 0 24 24"><path class="star-filled" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                            <svg class="star" viewBox="0 0 24 24"><path class="star-filled" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                            <svg class="star" viewBox="0 0 24 24"><path class="star-filled" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                            <svg class="star" viewBox="0 0 24 24"><path class="star-filled" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                            <svg class="star" viewBox="0 0 24 24"><path class="star-filled" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                        </div>
+                        <span class="rating-text"><a href="#" id="displayRating">(0 reviews)</a></span>
+                    </div>
+
+                    <div class="about-section">
+                        <h2 class="section-title">About this item</h2>
+                        <div class="product-description" id="displayDescription">
+                            Product description goes here.
+                        </div>
+                        <ul class="features-list" id="displayFeatures">
+                            <li>Feature 1</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Right: Buy Box -->
+                <div class="buy-box">
+                    <div class="price-section">
+                        <div class="current-price" id="displayPrice">$0<span class="price-cents">.00</span></div>
+                        <div class="unit-price">Price when purchased online</div>
+                    </div>
+
+                    <div class="wplus-banner">
+                        <div class="wplus-logo">
+                            <span>Walmart+</span>
+                        </div>
+                        <div class="wplus-text">Free delivery on orders $35+</div>
+                    </div>
+
+                    <div class="fulfillment-options">
+                        <div class="fulfillment-option">
+                            <div class="fulfillment-icon">
+                                <svg viewBox="0 0 24 24"><path d="M19 7h-3V6a4 4 0 0 0-8 0v1H5a1 1 0 0 0-1 1v12a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V8a1 1 0 0 0-1-1zm-9-1a2 2 0 0 1 4 0v1h-4V6zm8 14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V9h2v1a1 1 0 0 0 2 0V9h4v1a1 1 0 0 0 2 0V9h2v11z"/></svg>
+                            </div>
+                            <div class="fulfillment-details">
+                                <div class="fulfillment-title">Pickup</div>
+                                <div class="fulfillment-subtitle">Available today</div>
+                            </div>
+                        </div>
+
+                        <div class="fulfillment-option">
+                            <div class="fulfillment-icon">
+                                <svg viewBox="0 0 24 24"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+                            </div>
+                            <div class="fulfillment-details">
+                                <div class="fulfillment-title">Delivery</div>
+                                <div class="fulfillment-subtitle">Arrives tomorrow</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="add-to-cart-btn">Add to cart</button>
+
+                    <div class="secondary-actions">
+                        <button class="secondary-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                            Add to list
+                        </button>
+                    </div>
+
+                    <div class="seller-info">
+                        Sold and shipped by <a href="#">Walmart</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let currentImageIndex = 0;
+        let mockupData = null;
+
+        async function loadMockup(password = null) {
+            const id = window.location.pathname.split('/mockup/')[1];
+            if (!id) {
+                alert('Invalid mockup URL');
+                return;
+            }
+
+            try {
+                const url = password ? `/api/mockups/${id}?password=${encodeURIComponent(password)}` : `/api/mockups/${id}`;
+                const response = await fetch(url);
+                const result = await response.json();
+
+                if (result.passwordProtected) {
+                    document.getElementById('passwordModal').classList.add('active');
+                    return;
+                }
+
+                if (!result.success) {
+                    alert('Mockup not found');
+                    return;
+                }
+
+                mockupData = result.data;
+                document.getElementById('passwordModal').classList.remove('active');
+                document.getElementById('mockupContent').classList.add('loaded');
+                document.getElementById('viewCount').textContent = `Views: ${result.views}`;
+                renderMockup();
+            } catch (error) {
+                console.error('Error loading mockup:', error);
+                alert('Error loading mockup');
+            }
+        }
+
+        function submitPassword() {
+            const password = document.getElementById('passwordField').value;
+            if (!password) return;
+            
+            loadMockup(password).then(() => {}).catch(() => {
+                document.getElementById('errorMessage').classList.add('show');
+            });
+        }
+
+        document.getElementById('passwordField')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') submitPassword();
+        });
+
+        function renderMockup() {
+            if (!mockupData) return;
+
+            document.getElementById('displayBrand').textContent = mockupData.brand || 'Brand';
+            document.getElementById('displayTitle').textContent = mockupData.title || 'Product Title';
+            
+            const price = parseFloat(mockupData.price) || 0;
+            const dollars = Math.floor(price);
+            const cents = Math.round((price - dollars) * 100).toString().padStart(2, '0');
+            document.getElementById('displayPrice').innerHTML = `$${dollars}<span class="price-cents">.${cents}</span>`;
+
+            document.getElementById('displayDescription').textContent = mockupData.description || '';
+
+            const reviews = mockupData.reviews || 0;
+            document.getElementById('displayRating').textContent = `(${reviews} reviews)`;
+
+            // Render stars
+            const rating = parseFloat(mockupData.rating) || 0;
+            const starsContainer = document.getElementById('displayStars');
+            starsContainer.innerHTML = '';
+            for (let i = 1; i <= 5; i++) {
+                const star = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                star.setAttribute('class', 'star');
+                star.setAttribute('viewBox', '0 0 24 24');
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', 'M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z');
+                path.setAttribute('fill', i <= rating ? '#ffc220' : '#babbbe');
+                star.appendChild(path);
+                starsContainer.appendChild(star);
+            }
+
+            // Features
+            const bullets = mockupData.bullets?.filter(b => b.trim()) || [];
+            document.getElementById('displayFeatures').innerHTML = bullets.length ? 
+                bullets.map(b => `<li>${b}</li>`).join('') : 
+                '<li>No features listed</li>';
+
+            // Images
+            if (mockupData.images && mockupData.images.length > 0) {
+                updateImageDisplay();
+            }
+        }
+
+        function updateImageDisplay() {
+            const images = mockupData.images;
+            document.getElementById('mainImage').innerHTML = `<img src="${images[currentImageIndex]}" alt="Product">`;
+            document.getElementById('thumbnailRow').innerHTML = images.map((img, i) => `
+                <div class="thumbnail ${i === currentImageIndex ? 'active' : ''}" onclick="changeImage(${i})">
+                    <img src="${img}" alt="Thumbnail">
+                </div>
+            `).join('');
+        }
+
+        function changeImage(index) {
+            currentImageIndex = index;
+            updateImageDisplay();
+        }
+
+        loadMockup();
+    </script>
+</body>
+</html>
