@@ -225,6 +225,19 @@
         }
         .feedback-mode .feedback-overlay { pointer-events: auto; }
 
+        #commentPins {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 55;
+        }
+        #commentPins .comment-pin {
+            pointer-events: auto;
+        }
+
         .feedback-box {
             position: absolute;
             border: 3px solid var(--feedback-color);
