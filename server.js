@@ -285,7 +285,7 @@ app.post('/api/mockups/:id/versions', (req, res) => {
         console.error('Error creating new version:', error);
         res.status(500).json({ success: false, error: 'Failed to create new version' });
     }
-}););
+});
 
 // Delete mockup
 app.delete('/api/mockups/:id', (req, res) => {
