@@ -1640,13 +1640,29 @@
                     feedbackComments = data.comments;
                     renderFeedback();
                     
-                    // Show feedback button if there are comments on current version OR if there are archived versions with potential comments
-                    const unresolvedCount = feedbackComments.filter(c => !c.resolved).length;
+                    // Check if there are archived versions with potential feedback
                     const hasArchivedVersions = availableVersions.some(v => !v.isCurrent);
+                    const unresolvedCount = feedbackComments.filter(c => !c.resolved).length;
+                    
+                    console.log('=== FEEDBACK BUTTON LOGIC ===');
+                    console.log('Current version comments:', feedbackComments.length);
+                    console.log('Has archived versions:', hasArchivedVersions);
+                    console.log('Available versions:', availableVersions);
+                    
+                    // Show feedback button if:
+                    // 1. There are comments on current version, OR
+                    // 2. There are archived versions (which may have feedback)
                     const shouldShowFeedbackBtn = feedbackComments.length > 0 || hasArchivedVersions;
                     
-                    document.getElementById('feedbackBtn').style.display = shouldShowFeedbackBtn ? 'block' : 'none';
-                    document.getElementById('feedbackCount').textContent = unresolvedCount;
+                    const feedbackBtn = document.getElementById('feedbackBtn');
+                    feedbackBtn.style.display = shouldShowFeedbackBtn ? 'block' : 'none';
+                    
+                    // Update button text based on context
+                    if (feedbackComments.length > 0) {
+                        feedbackBtn.innerHTML = `💬 Review Feedback (<span id="feedbackCount">${unresolvedCount}</span>)`;
+                    } else if (hasArchivedVersions) {
+                        feedbackBtn.innerHTML = `💬 View Previous Feedback`;
+                    }
                     
                     // Show "Create New Version" button if there are comments on current version
                     document.getElementById('newVersionBtn').style.display = feedbackComments.length > 0 ? 'inline-block' : 'none';
@@ -1772,16 +1788,25 @@
             const viewer = document.getElementById('feedbackViewer');
             const versionSelect = document.getElementById('feedbackVersionSelect');
             
+            // If current version has no comments but there are archived versions, default to most recent archived
+            if (feedbackComments.length === 0 && availableVersions.length > 1) {
+                const archivedVersions = availableVersions.filter(v => !v.isCurrent);
+                if (archivedVersions.length > 0) {
+                    // Get most recent archived version
+                    viewingFeedbackVersion = Math.max(...archivedVersions.map(v => v.versionNumber));
+                }
+            }
+            
             console.log('Opening feedback modal. Available versions:', availableVersions);
             console.log('Current version:', currentVersionNumber, 'Viewing:', viewingFeedbackVersion);
             
-            // Always populate version dropdown (even with 1 version)
-            if (availableVersions.length > 0) {
+            // Always populate version dropdown if there are multiple versions
+            if (availableVersions.length > 1) {
                 versionSelect.innerHTML = availableVersions.map(v => {
                     const label = v.isCurrent ? `Version ${v.versionNumber} (Current)` : `Version ${v.versionNumber} (Archived)`;
                     return `<option value="${v.versionNumber}" ${v.versionNumber === viewingFeedbackVersion ? 'selected' : ''}>${label}</option>`;
                 }).join('');
-                versionSelect.style.display = availableVersions.length > 1 ? 'inline-block' : 'none';
+                versionSelect.style.display = 'inline-block';
                 versionSelect.classList.toggle('viewing-archived', viewingFeedbackVersion < currentVersionNumber);
             } else {
                 versionSelect.style.display = 'none';
@@ -1792,23 +1817,36 @@
             document.getElementById('clearFeedbackBtn').style.display = !isViewingArchived ? 'inline-block' : 'none';
             document.getElementById('archivedNotice').style.display = isViewingArchived ? 'block' : 'none';
             
-            // Load viewer in iframe with highlight parameter if commentId provided
-            let viewerUrl = `/mockup/${currentMockupId}?reviewMode=true&version=${viewingFeedbackVersion}`;
-            if (commentId) {
-                viewerUrl += `&highlightComment=${commentId}`;
-                currentFeedbackIndex = feedbackComments.findIndex(c => c.id === commentId);
-            } else {
-                currentFeedbackIndex = 0;
-                if (feedbackComments.length > 0) {
-                    viewerUrl += `&highlightComment=${feedbackComments[0].id}`;
+            // Load comments for the version we're viewing (may need to fetch if viewing archived)
+            loadFeedbackForVersion(viewingFeedbackVersion).then(() => {
+                // Load viewer in iframe with highlight parameter if commentId provided
+                let viewerUrl = `/mockup/${currentMockupId}?reviewMode=true&version=${viewingFeedbackVersion}`;
+                if (commentId) {
+                    viewerUrl += `&highlightComment=${commentId}`;
+                    currentFeedbackIndex = feedbackComments.findIndex(c => c.id === commentId);
+                } else {
+                    currentFeedbackIndex = 0;
+                    if (feedbackComments.length > 0) {
+                        viewerUrl += `&highlightComment=${feedbackComments[0].id}`;
+                    }
                 }
-            }
-            
-            viewer.src = viewerUrl;
-            modal.classList.add('active');
-            
-            renderFeedbackSidebar();
-            updateFeedbackNav();
+                
+                viewer.src = viewerUrl;
+                modal.classList.add('active');
+                
+                renderFeedbackSidebar();
+                updateFeedbackNav();
+            });
+        }
+        
+        async function loadFeedbackForVersion(version) {
+            try {
+                const res = await fetch(`/api/mockups/${currentMockupId}/comments?version=${version}`);
+                const data = await res.json();
+                if (data.success) {
+                    feedbackComments = data.comments;
+                }
+            } catch (e) { console.error('Error loading version feedback:', e); }
         }
         
         async function switchFeedbackVersion(version) {
