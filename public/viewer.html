@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Walmart Product Mockup</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --walmart-blue: #0071dc;
+            --walmart-dark-blue: #004f9a;
+            --walmart-yellow: #ffc220;
+            --walmart-green: #2a8703;
+            --text-primary: #2e2f32;
+            --text-secondary: #46474a;
+            --text-muted: #74767c;
+            --border-color: #e6e6e6;
+            --bg-gray: #f2f2f2;
+            --white: #fff;
+            --feedback-color: #e91e63;
+        }
+        body {
+            font-family: Bogle, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background: var(--white);
+            color: var(--text-primary);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        a { color: var(--text-primary); text-decoration: underline; }
+        a:hover { color: var(--walmart-blue); }
+
+        /* Walmart Header */
+        .walmart-header {
+            background: var(--walmart-blue);
+            padding: 0 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-top {
+            display: flex;
+            align-items: center;
+            height: 56px;
+            gap: 16px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .walmart-logo { display: flex; align-items: center; gap: 8px; color: white; text-decoration: none; }
+        .spark-svg { width: 28px; height: 28px; }
+        .location-btn {
+            display: flex; align-items: center; gap: 8px;
+            background: rgba(255,255,255,0.1); border: none; border-radius: 24px;
+            padding: 8px 16px; color: white; font-size: 12px; cursor: pointer;
+        }
+        .search-container { flex: 1; max-width: 680px; }
+        .search-bar {
+            display: flex; align-items: center; background: white;
+            border-radius: 24px; overflow: hidden; height: 40px;
+        }
+        .search-input { flex: 1; border: none; padding: 0 16px; font-size: 14px; outline: none; }
+        .search-btn {
+            width: 48px; height: 40px; background: var(--walmart-yellow);
+            border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+        .header-actions { display: flex; align-items: center; gap: 20px; margin-left: auto; }
+        .header-action { display: flex; flex-direction: column; align-items: center; color: white; text-decoration: none; font-size: 11px; gap: 2px; }
+        .header-nav { background: var(--walmart-blue); border-top: 1px solid rgba(255,255,255,0.1); }
+        .nav-items { display: flex; gap: 4px; max-width: 1400px; margin: 0 auto; padding: 8px 16px; overflow-x: auto; }
+        .nav-item { color: white; text-decoration: none; font-size: 12px; padding: 8px 12px; white-space: nowrap; border-radius: 20px; }
+        .nav-item:hover { background: rgba(255,255,255,0.1); color: white; }
+
+        /* Main Content */
+        .main-content { max-width: 1400px; margin: 0 auto; padding: 16px 24px; position: relative; }
+        .page-layout { display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: start; }
+        .left-content { min-width: 0; position: relative; }
+        .product-top-section { display: grid; grid-template-columns: 550px 1fr; gap: 24px; margin-bottom: 32px; }
+        .image-gallery { display: flex; gap: 12px; align-self: start; }
+        .thumbnail-strip { display: flex; flex-direction: column; gap: 8px; width: 64px; }
+        .thumbnail {
+            width: 64px; height: 64px; border: 2px solid var(--border-color);
+            border-radius: 8px; overflow: hidden; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; background: white;
+        }
+        .thumbnail:hover, .thumbnail.active { border-color: var(--walmart-blue); }
+        .thumbnail img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .main-image {
+            width: 470px; height: 470px; border: 1px solid var(--border-color);
+            border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            overflow: hidden; position: relative; background: white;
+        }
+        .main-image img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .image-actions { position: absolute; right: 12px; top: 12px; display: flex; flex-direction: column; gap: 8px; }
+        .image-action-btn { width: 36px; height: 36px; background: white; border: 1px solid var(--border-color); border-radius: 50%; cursor: pointer; }
+        .placeholder-image { color: var(--text-muted); text-align: center; padding: 40px; }
+
+        /* Product Info */
+        .product-info { padding-right: 16px; }
+        .best-seller-badge { display: inline-block; background: #f5a623; color: white; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 4px; margin-bottom: 8px; }
+        .brand-name { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+        .brand-name a { color: inherit; }
+        .product-title { font-size: 20px; font-weight: 700; line-height: 1.4; margin-bottom: 8px; }
+        .rating-row { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; font-size: 12px; }
+        .stars { color: var(--walmart-yellow); font-size: 14px; }
+        .pack-size-section { margin-bottom: 20px; }
+        .section-label { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+        .pack-options { display: flex; gap: 8px; }
+        .pack-option { border: 2px solid var(--border-color); border-radius: 8px; padding: 12px 16px; text-align: center; cursor: pointer; min-width: 80px; }
+        .pack-option.selected { border-color: var(--text-primary); }
+        .pack-option-name { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+        .pack-option-price { font-size: 14px; font-weight: 700; }
+        .pack-option-unit { font-size: 10px; color: var(--text-muted); }
+        .collapsible-section { border-top: 1px solid var(--border-color); padding: 16px 0; }
+        .collapsible-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 600; font-size: 14px; }
+        .collapsible-header .chevron { transition: transform 0.2s; }
+        .collapsible-section.open .chevron { transform: rotate(180deg); }
+        .collapsible-content { display: none; padding-top: 12px; font-size: 14px; color: var(--text-secondary); }
+        .collapsible-section.open .collapsible-content { display: block; }
+        .about-bullets { list-style: disc; padding-left: 20px; font-size: 13px; line-height: 1.8; color: var(--text-secondary); }
+        .about-bullets li { margin-bottom: 4px; }
+        .view-full-details { display: inline-block; margin-top: 12px; font-size: 12px; }
+
+        /* Buy Box */
+        .buy-box { background: var(--white); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; position: sticky; top: 16px; height: fit-content; }
+        .price-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+        .price-now-label { font-size: 14px; font-weight: 700; }
+        .price-current { font-size: 28px; font-weight: 700; }
+        .price-original { font-size: 14px; color: var(--text-muted); text-decoration: line-through; }
+        .price-unit { font-size: 12px; color: var(--text-muted); }
+        .price-savings { color: var(--walmart-green); font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+        .price-subtext { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; }
+        .free-returns { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--walmart-green); margin-bottom: 16px; }
+        .add-to-cart-btn { width: 100%; padding: 12px; background: var(--walmart-blue); color: white; border: none; border-radius: 24px; font-size: 14px; font-weight: 700; cursor: pointer; margin-bottom: 16px; }
+        .add-to-cart-btn:hover { background: var(--walmart-dark-blue); }
+        .subscribe-section { border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+        .subscribe-header { display: flex; justify-content: space-between; align-items: center; }
+        .subscribe-radio { display: flex; align-items: center; gap: 8px; }
+        .subscribe-price { font-weight: 700; }
+        .subscribe-details { margin-left: 24px; font-size: 12px; color: var(--text-muted); }
+        .fulfillment-section { margin: 16px 0; }
+        .fulfillment-label { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+        .fulfillment-checkbox { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 12px; }
+        .fulfillment-tabs { display: flex; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; }
+        .fulfillment-tab { flex: 1; padding: 12px 8px; text-align: center; cursor: pointer; border-right: 1px solid var(--border-color); background: white; }
+        .fulfillment-tab:last-child { border-right: none; }
+        .fulfillment-tab.selected { background: var(--bg-gray); }
+        .fulfillment-tab-icon { font-size: 20px; margin-bottom: 4px; }
+        .fulfillment-tab-title { font-size: 11px; font-weight: 600; }
+        .fulfillment-tab-subtitle { font-size: 10px; color: var(--text-muted); }
+        .delivery-info { padding: 12px 0; font-size: 12px; }
+        .delivery-location { font-weight: 600; }
+        .seller-info { padding: 12px 0; border-top: 1px solid var(--border-color); font-size: 12px; }
+        .seller-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .seller-actions { display: flex; gap: 16px; margin-top: 12px; }
+        .seller-action { font-size: 12px; }
+        .more-sellers { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-color); }
+        .more-sellers-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+        .more-sellers-link { font-size: 12px; }
+        .wplus-banner { background: linear-gradient(90deg, #0071dc, #004f9a); color: white; padding: 12px; border-radius: 8px; margin-top: 16px; display: flex; align-items: center; gap: 12px; }
+        .wplus-text { font-size: 12px; }
+        .wplus-text strong { display: block; }
+        .wplus-trial { font-size: 11px; margin-top: 4px; }
+        .wplus-trial a { color: white; }
+
+        /* About Section */
+        .about-section-full { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border-color); }
+        .about-section-full h2 { font-size: 20px; font-weight: 700; margin-bottom: 16px; }
+        .product-details-section { border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 8px; }
+        .details-header { display: flex; justify-content: space-between; align-items: center; padding: 16px; cursor: pointer; font-weight: 600; }
+        .details-content { display: none; padding: 0 16px 16px; font-size: 14px; line-height: 1.7; }
+        .product-details-section.open .details-content { display: block; }
+        .details-description { margin-bottom: 16px; }
+        .details-bullets { list-style: disc; padding-left: 20px; margin-bottom: 16px; }
+        .details-bullets li { margin-bottom: 8px; }
+        .details-disclaimer { background: var(--bg-gray); padding: 12px; border-radius: 4px; font-size: 12px; color: var(--text-muted); display: flex; gap: 8px; }
+        .brand-images { display: flex; flex-direction: column; gap: 16px; }
+        .brand-image { width: 100%; border-radius: 8px; overflow: hidden; }
+        .brand-image img { width: 100%; height: auto; display: block; }
+
+        /* Password Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 2000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; padding: 32px; border-radius: 16px; max-width: 400px; width: 90%; }
+        .modal-title { font-size: 24px; font-weight: 700; margin-bottom: 12px; text-align: center; }
+        .modal-text { text-align: center; color: var(--text-muted); margin-bottom: 20px; }
+        .password-input { width: 100%; padding: 14px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 16px; margin-bottom: 16px; }
+        .submit-btn { width: 100%; padding: 14px; background: var(--walmart-blue); color: white; border: none; border-radius: 24px; font-size: 16px; font-weight: 700; cursor: pointer; }
+        .error-message { color: #de1c24; text-align: center; margin-top: 12px; display: none; }
+        .error-message.show { display: block; }
+        .mockup-content { display: none; }
+        .mockup-content.loaded { display: block; }
+
+        /* ========== FEEDBACK SYSTEM ========== */
+        .feedback-toggle {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1000;
+            background: var(--feedback-color);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .feedback-toggle:hover { background: #c2185b; }
+        .feedback-toggle.active { background: #c2185b; }
+
+        .feedback-mode .main-content { cursor: crosshair; }
+        .feedback-mode .feedback-toggle { background: #c2185b; }
+
+        .feedback-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 50;
+        }
+        .feedback-mode .feedback-overlay { pointer-events: auto; }
+
+        .feedback-box {
+            position: absolute;
+            border: 3px solid var(--feedback-color);
+            background: rgba(233, 30, 99, 0.1);
+            pointer-events: none;
+        }
+
+        .comment-pin {
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            background: var(--feedback-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            z-index: 60;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            transform: translate(-50%, -50%);
+        }
+        .comment-pin:hover { transform: translate(-50%, -50%) scale(1.1); }
+        .comment-pin.resolved { background: #9e9e9e; }
+
+        .comment-highlight {
+            position: absolute;
+            border: 3px solid var(--feedback-color);
+            background: rgba(233, 30, 99, 0.15);
+            pointer-events: none;
+            z-index: 55;
+        }
+
+        /* Comment Popup */
+        .comment-popup {
+            position: absolute;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            width: 320px;
+            z-index: 500;
+            overflow: hidden;
+        }
+        .comment-popup-header {
+            background: var(--feedback-color);
+            color: white;
+            padding: 12px 16px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .comment-popup-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .comment-popup-body { padding: 16px; }
+        .comment-popup textarea {
+            width: 100%;
+            min-height: 100px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            margin-bottom: 12px;
+        }
+        .comment-popup-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+        .comment-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+        .comment-btn-primary { background: var(--feedback-color); color: white; }
+        .comment-btn-secondary { background: var(--bg-gray); color: var(--text-primary); }
+        .comment-btn-danger { background: #ffebee; color: #c62828; }
+
+        /* Existing Comment View */
+        .comment-view {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .comment-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .comment-author { font-weight: 600; color: var(--text-primary); }
+        .comment-text { margin-bottom: 12px; }
+        .comment-edit-actions { display: flex; gap: 8px; margin-top: 8px; }
+
+        /* Name Modal */
+        .name-modal .modal-content { max-width: 360px; }
+        .name-input { width: 100%; padding: 14px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 16px; margin-bottom: 16px; }
+
+        /* Comment List Panel */
+        .comments-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 380px;
+            height: 100%;
+            background: white;
+            box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+            z-index: 200;
+            transition: right 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+        .comments-panel.open { right: 0; }
+        .comments-panel-header {
+            background: var(--feedback-color);
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .comments-panel-title { font-size: 16px; font-weight: 700; }
+        .comments-panel-close { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
+        .comments-list { flex: 1; overflow-y: auto; padding: 16px; }
+        .comment-card {
+            background: var(--bg-gray);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .comment-card:hover { background: #e3e3e3; }
+        .comment-card.resolved { opacity: 0.6; }
+        .comment-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .comment-card-number {
+            width: 24px; height: 24px; background: var(--feedback-color);
+            color: white; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; font-size: 11px; font-weight: 700;
+        }
+        .comment-card.resolved .comment-card-number { background: #9e9e9e; }
+        .comment-card-author { font-size: 12px; font-weight: 600; }
+        .comment-card-date { font-size: 11px; color: var(--text-muted); }
+        .comment-card-text { font-size: 13px; color: var(--text-secondary); }
+
+        @media (max-width: 1200px) {
+            .page-layout { grid-template-columns: 1fr; }
+            .buy-box { position: static; order: -1; margin-bottom: 24px; }
+        }
+        @media (max-width: 900px) {
+            .product-top-section { grid-template-columns: 1fr; }
+            .main-image { width: 100%; height: auto; aspect-ratio: 1; }
+            .comments-panel { width: 100%; right: -100%; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Password Modal -->
+    <div class="modal" id="passwordModal">
+        <div class="modal-content">
+            <h2 class="modal-title">🔒 Password Required</h2>
+            <p class="modal-text">This mockup is password protected.</p>
+            <input type="password" class="password-input" id="passwordField" placeholder="Enter password" />
+            <button class="submit-btn" onclick="submitPassword()">View Mockup</button>
+            <div class="error-message" id="errorMessage">Incorrect password</div>
+        </div>
+    </div>
+
+    <!-- Name Modal -->
+    <div class="modal name-modal" id="nameModal">
+        <div class="modal-content">
+            <h2 class="modal-title">👋 What's your name?</h2>
+            <p class="modal-text">This will be shown with your feedback comments.</p>
+            <input type="text" class="name-input" id="nameField" placeholder="Your name" />
+            <button class="submit-btn" onclick="saveName(); event.stopPropagation();">Continue</button>
+        </div>
+    </div>
+
+    <!-- Comment Input Popup -->
+    <div class="comment-popup" id="commentPopup" style="display:none;">
+        <div class="comment-popup-header">
+            <span id="popupTitle">Add Comment</span>
+            <button class="comment-popup-close" onclick="closeCommentPopup()">×</button>
+        </div>
+        <div class="comment-popup-body">
+            <div id="commentInputView">
+                <textarea id="commentInput" placeholder="Describe your feedback..."></textarea>
+                <div class="comment-popup-actions">
+                    <button class="comment-btn comment-btn-secondary" onclick="closeCommentPopup()">Cancel</button>
+                    <button class="comment-btn comment-btn-primary" onclick="submitComment()">Submit</button>
+                </div>
+            </div>
+            <div id="commentViewMode" style="display:none;">
+                <div class="comment-view">
+                    <div class="comment-meta">
+                        <span class="comment-author" id="viewAuthor"></span>
+                        <span id="viewDate"></span>
+                    </div>
+                    <div class="comment-text" id="viewText"></div>
+                    <div id="viewActions"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comments Side Panel -->
+    <div class="comments-panel" id="commentsPanel">
+        <div class="comments-panel-header">
+            <span class="comments-panel-title">💬 Feedback (<span id="commentCount">0</span>)</span>
+            <button class="comments-panel-close" onclick="toggleCommentsPanel()">×</button>
+        </div>
+        <div class="comments-list" id="commentsList"></div>
+    </div>
+
+    <div class="mockup-content" id="mockupContent">
+        <!-- Feedback Toggle Button -->
+        <button class="feedback-toggle" id="feedbackToggle" onclick="toggleFeedbackMode()">
+            <span>💬</span> Leave Feedback
+        </button>
+
+        <!-- Walmart Header -->
+        <header class="walmart-header">
+            <div class="header-top">
+                <a href="#" class="walmart-logo">
+                    <svg class="spark-svg" viewBox="0 0 24 24" fill="#ffc220"><path d="M12 2L14.5 9H22L16 13.5L18 21L12 16.5L6 21L8 13.5L2 9H9.5L12 2Z"/></svg>
+                </a>
+                <button class="location-btn"><span>📍</span><span>How do you want your items?</span></button>
+                <div class="search-container">
+                    <div class="search-bar">
+                        <input type="text" class="search-input" placeholder="Search everything at Walmart online and in store">
+                        <button class="search-btn">🔍</button>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <a href="#" class="header-action"><span>↻</span><span>Reorder</span></a>
+                    <a href="#" class="header-action"><span>👤</span><span>Sign In</span></a>
+                    <a href="#" class="header-action"><span>🛒</span><span>$0.00</span></a>
+                </div>
+            </div>
+            <nav class="header-nav">
+                <div class="nav-items">
+                    <a href="#" class="nav-item">Departments</a>
+                    <a href="#" class="nav-item">Services</a>
+                    <a href="#" class="nav-item">Deals</a>
+                    <a href="#" class="nav-item">Grocery</a>
+                    <a href="#" class="nav-item">Essentials</a>
+                    <a href="#" class="nav-item">Fashion</a>
+                    <a href="#" class="nav-item">Home</a>
+                    <a href="#" class="nav-item">Electronics</a>
+                </div>
+            </nav>
+        </header>
+
+        <div class="main-content" id="mainContent">
+            <div class="page-layout">
+                <div class="left-content" id="leftContent">
+                    <!-- Feedback Overlay - inside left-content for accurate positioning -->
+                    <div class="feedback-overlay" id="feedbackOverlay"></div>
+                    <!-- Comment Pins Container -->
+                    <div id="commentPins"></div>
+                    <!-- Active Highlight -->
+                    <div class="comment-highlight" id="commentHighlight" style="display:none;"></div>
+
+                    <div class="product-top-section">
+                        <div class="image-gallery">
+                            <div class="thumbnail-strip" id="thumbnailStrip"></div>
+                            <div class="main-image" id="mainImage">
+                                <div class="placeholder-image"><div style="font-size:64px;">📦</div><div>No image</div></div>
+                            </div>
+                        </div>
+                        <div class="product-info">
+                            <span class="best-seller-badge">Best seller</span>
+                            <div class="brand-name"><a href="#" id="displayBrand">Brand</a></div>
+                            <h1 class="product-title" id="displayTitle">Product Title</h1>
+                            <div class="rating-row">
+                                <span class="stars">★★★★★</span>
+                                <span>(4.6)</span>
+                                <a href="#">2,402 reviews</a>
+                            </div>
+                            <div class="pack-size-section">
+                                <div class="section-label">Pack Size: <span id="displayPackSize">Single</span></div>
+                                <div class="pack-options">
+                                    <div class="pack-option selected">
+                                        <div class="pack-option-name">Single</div>
+                                        <div class="pack-option-price" id="displayPriceSmall">Now $7.97</div>
+                                        <div class="pack-option-unit">49.8 ¢/oz</div>
+                                    </div>
+                                    <div class="pack-option">
+                                        <div class="pack-option-name">2-Pack</div>
+                                        <div class="pack-option-price">$15.94</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="collapsible-section open">
+                                <div class="collapsible-header" onclick="this.parentElement.classList.toggle('open')">
+                                    <span>Ingredients</span><span class="chevron">▼</span>
+                                </div>
+                                <div class="collapsible-content"><p id="displayIngredients">Honey</p></div>
+                            </div>
+                            <div class="collapsible-section open">
+                                <div class="collapsible-header" onclick="this.parentElement.classList.toggle('open')">
+                                    <span>About this item</span><span class="chevron">▼</span>
+                                </div>
+                                <div class="collapsible-content">
+                                    <ul class="about-bullets" id="displayBullets"><li>Feature 1</li></ul>
+                                    <a href="#about-section" class="view-full-details">View full details</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="about-section-full" id="about-section">
+                        <h2>About this item</h2>
+                        <div class="product-details-section open">
+                            <div class="details-header" onclick="this.parentElement.classList.toggle('open')">
+                                <span>Product details</span><span class="chevron">▼</span>
+                            </div>
+                            <div class="details-content">
+                                <p class="details-description" id="displayFullDescription">Description</p>
+                                <ul class="details-bullets" id="displayDetailsBullets"><li>Detail 1</li></ul>
+                                <div class="details-disclaimer"><span>ⓘ</span><span>We aim to show accurate product information.</span></div>
+                            </div>
+                        </div>
+                        <div class="product-details-section">
+                            <div class="details-header" onclick="this.parentElement.classList.toggle('open')"><span>Specifications</span><span>▸</span></div>
+                            <div class="details-content"><p>Specifications here.</p></div>
+                        </div>
+                        <div class="product-details-section">
+                            <div class="details-header" onclick="this.parentElement.classList.toggle('open')"><span>Ingredients</span><span>▸</span></div>
+                            <div class="details-content"><p id="displayIngredientsFull">Ingredients</p></div>
+                        </div>
+                        <div class="product-details-section open">
+                            <div class="details-header" onclick="this.parentElement.classList.toggle('open')"><span>About the brand</span><span class="chevron">▼</span></div>
+                            <div class="details-content"><div class="brand-images" id="brandImages"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="buy-box">
+                    <div class="price-row">
+                        <span class="price-now-label">Now</span>
+                        <span class="price-current" id="displayPrice">$7.97</span>
+                        <span class="price-original">$11.72</span>
+                    </div>
+                    <div class="price-savings">You save $3.75</div>
+                    <div class="price-subtext">Price when purchased online</div>
+                    <div class="free-returns">✓ Free 90-day returns</div>
+                    <button class="add-to-cart-btn">Add to cart</button>
+                    <div class="subscribe-section">
+                        <div class="subscribe-header">
+                            <label class="subscribe-radio"><input type="radio" name="purchase"> Subscribe</label>
+                            <span class="subscribe-price">$7.97</span>
+                        </div>
+                    </div>
+                    <div class="subscribe-section">
+                        <div class="subscribe-header">
+                            <label class="subscribe-radio"><input type="radio" name="purchase" checked> One-time purchase</label>
+                            <span class="subscribe-price">$7.97</span>
+                        </div>
+                    </div>
+                    <div class="fulfillment-section">
+                        <div class="fulfillment-label">How you'll get this item:</div>
+                        <div class="fulfillment-tabs">
+                            <div class="fulfillment-tab selected"><div class="fulfillment-tab-icon">📦</div><div class="fulfillment-tab-title">Shipping</div></div>
+                            <div class="fulfillment-tab"><div class="fulfillment-tab-icon">🏪</div><div class="fulfillment-tab-title">Pickup</div></div>
+                            <div class="fulfillment-tab"><div class="fulfillment-tab-icon">🚚</div><div class="fulfillment-tab-title">Delivery</div></div>
+                        </div>
+                    </div>
+                    <div class="seller-info">
+                        <div class="seller-row"><span>🏪</span> Sold and shipped by Walmart.com</div>
+                        <div class="seller-row"><span>↩</span> Free 90-day returns</div>
+                    </div>
+                    <div class="wplus-banner">
+                        <div class="wplus-text"><strong>Walmart+</strong><span class="wplus-trial">Free delivery & more</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let mockupData = null;
+        let currentImageIndex = 0;
+        let mockupId = null;
+        let comments = [];
+        let feedbackMode = false;
+        let isDrawing = false;
+        let startX, startY;
+        let currentBox = null;
+        let authorName = localStorage.getItem('feedbackAuthor') || '';
+        let authorToken = localStorage.getItem('feedbackToken') || '';
+        let editingCommentId = null;
+        let pendingBox = null;
+        let justFinishedDrawing = false;
+
+        // Generate author token if not exists
+        if (!authorToken) {
+            authorToken = 'user_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('feedbackToken', authorToken);
+        }
+
+        // ========== MOCKUP LOADING ==========
+        async function loadMockup(password = null) {
+            mockupId = window.location.pathname.split('/mockup/')[1];
+            if (!mockupId) return alert('Invalid mockup URL');
+            try {
+                const url = password ? `/api/mockups/${mockupId}?password=${encodeURIComponent(password)}` : `/api/mockups/${mockupId}`;
+                const response = await fetch(url);
+                const result = await response.json();
+                if (result.passwordProtected) {
+                    document.getElementById('passwordModal').classList.add('active');
+                    return;
+                }
+                if (!result.success) {
+                    document.getElementById('errorMessage').classList.add('show');
+                    return;
+                }
+                mockupData = result.data;
+                document.getElementById('passwordModal').classList.remove('active');
+                document.getElementById('mockupContent').classList.add('loaded');
+                renderMockup();
+                loadComments();
+            } catch (e) { console.error('Error:', e); }
+        }
+
+        function submitPassword() {
+            const pw = document.getElementById('passwordField').value;
+            if (!pw) return;
+            document.getElementById('errorMessage').classList.remove('show');
+            loadMockup(pw);
+        }
+        document.getElementById('passwordField')?.addEventListener('keypress', e => { if (e.key === 'Enter') submitPassword(); });
+        document.getElementById('nameField')?.addEventListener('keypress', e => { if (e.key === 'Enter') { saveName(); e.stopPropagation(); } });
+
+        function renderMockup() {
+            if (!mockupData) return;
+            document.getElementById('displayBrand').textContent = mockupData.brand || 'Brand';
+            document.getElementById('displayTitle').textContent = mockupData.title || 'Product Title';
+            const price = parseFloat(mockupData.price) || 0;
+            document.getElementById('displayPrice').textContent = `$${price.toFixed(2)}`;
+            document.getElementById('displayPriceSmall').textContent = `Now $${price.toFixed(2)}`;
+            if (mockupData.packSize) document.getElementById('displayPackSize').textContent = mockupData.packSize;
+            if (mockupData.ingredients) {
+                document.getElementById('displayIngredients').textContent = mockupData.ingredients;
+                document.getElementById('displayIngredientsFull').textContent = mockupData.ingredients;
+            }
+            const bullets = mockupData.bullets?.filter(b => b.trim()) || [];
+            document.getElementById('displayBullets').innerHTML = bullets.length ? bullets.map(b => `<li>${b}</li>`).join('') : '<li>No features</li>';
+            const detailsBullets = mockupData.detailsBullets?.filter(b => b.trim()) || [];
+            document.getElementById('displayDetailsBullets').innerHTML = detailsBullets.length ? detailsBullets.map(b => `<li>${b}</li>`).join('') : '<li>No details</li>';
+            if (mockupData.fullDescription) document.getElementById('displayFullDescription').textContent = mockupData.fullDescription;
+            if (mockupData.images?.length > 0) updateImageDisplay();
+            if (mockupData.brandImages?.length > 0) {
+                document.getElementById('brandImages').innerHTML = mockupData.brandImages.map(img => `<div class="brand-image"><img src="${img}"></div>`).join('');
+            }
+        }
+
+        function updateImageDisplay() {
+            const images = mockupData.images;
+            document.getElementById('mainImage').innerHTML = `<img src="${images[currentImageIndex]}"><div class="image-actions"><button class="image-action-btn">↗</button><button class="image-action-btn">♡</button></div>`;
+            let thumbHtml = images.slice(0, 6).map((img, i) => `<div class="thumbnail ${i === currentImageIndex ? 'active' : ''}" onclick="changeImage(${i})"><img src="${img}"></div>`).join('');
+            if (images.length > 6) thumbHtml += `<div class="thumbnail" style="background:#f2f2f2;font-size:12px;color:#74767c;">+${images.length - 6}</div>`;
+            document.getElementById('thumbnailStrip').innerHTML = thumbHtml;
+        }
+
+        // ========== COMMENTS SYSTEM ==========
+        async function loadComments() {
+            try {
+                const res = await fetch(`/api/mockups/${mockupId}/comments`);
+                const data = await res.json();
+                if (data.success) {
+                    comments = data.comments;
+                    renderCommentPins();
+                    renderCommentsList();
+                }
+            } catch (e) { console.error('Error loading comments:', e); }
+        }
+
+        function renderCommentPins() {
+            const container = document.getElementById('commentPins');
+            // Only show pins for comments on the current image (or comments without image tracking for backwards compat)
+            const currentImageComments = comments.filter(c => 
+                c.imageIndex === undefined || c.imageIndex === null || c.imageIndex === currentImageIndex
+            );
+            container.innerHTML = currentImageComments.map((c) => {
+                const globalIndex = comments.indexOf(c) + 1;
+                return `
+                <div class="comment-pin ${c.resolved ? 'resolved' : ''}" 
+                     style="left:${c.x}%;top:${c.y}%;" 
+                     onclick="showComment('${c.id}')"
+                     title="${c.author}: ${c.comment.substring(0, 50)}...">${globalIndex}</div>
+            `}).join('');
+        }
+
+        function renderCommentsList() {
+            document.getElementById('commentCount').textContent = comments.filter(c => !c.resolved).length;
+            const list = document.getElementById('commentsList');
+            if (comments.length === 0) {
+                list.innerHTML = '<div style="text-align:center;color:#74767c;padding:40px;">No feedback yet</div>';
+                return;
+            }
+            const totalImages = mockupData?.images?.length || 1;
+            list.innerHTML = comments.map((c, i) => {
+                const imageLabel = (c.imageIndex !== undefined && c.imageIndex !== null && totalImages > 1) 
+                    ? `<span style="background:#e3f2fd;color:#1565c0;padding:2px 6px;border-radius:4px;font-size:10px;margin-left:6px;">Image ${c.imageIndex + 1}</span>` 
+                    : '';
+                return `
+                <div class="comment-card ${c.resolved ? 'resolved' : ''}" onclick="showComment('${c.id}')">
+                    <div class="comment-card-header">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <div class="comment-card-number">${i + 1}</div>
+                            <span class="comment-card-author">${c.author}</span>
+                            ${imageLabel}
+                        </div>
+                        <span class="comment-card-date">${new Date(c.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    <div class="comment-card-text">${c.comment}</div>
+                </div>
+            `}).join('');
+        }
+
+        function showComment(id) {
+            const c = comments.find(x => x.id === id);
+            if (!c) return;
+
+            // Switch to the correct image first if comment has imageIndex
+            if (c.imageIndex !== undefined && c.imageIndex !== null && c.imageIndex !== currentImageIndex) {
+                currentImageIndex = c.imageIndex;
+                updateImageDisplay();
+                renderCommentPins();
+            }
+
+            // Show highlight box
+            const highlight = document.getElementById('commentHighlight');
+            highlight.style.left = c.x + '%';
+            highlight.style.top = c.y + '%';
+            highlight.style.width = c.width + '%';
+            highlight.style.height = c.height + '%';
+            highlight.style.display = 'block';
+
+            // Scroll to make highlight visible
+            const leftContent = document.getElementById('leftContent');
+            const highlightTop = (c.y / 100) * leftContent.scrollHeight;
+            window.scrollTo({ top: Math.max(0, highlightTop - 150), behavior: 'smooth' });
+
+            // In review mode (iframe), don't show popup - just highlight
+            if (isReviewMode) {
+                return;
+            }
+
+            // Show popup
+            const popup = document.getElementById('commentPopup');
+            const imageNote = (c.imageIndex !== undefined && c.imageIndex !== null) ? ` (Image ${c.imageIndex + 1})` : '';
+            document.getElementById('popupTitle').textContent = `Comment #${comments.indexOf(c) + 1}${imageNote}`;
+            document.getElementById('commentInputView').style.display = 'none';
+            document.getElementById('commentViewMode').style.display = 'block';
+            document.getElementById('viewAuthor').textContent = c.author;
+            document.getElementById('viewDate').textContent = new Date(c.createdAt).toLocaleString();
+            document.getElementById('viewText').textContent = c.comment;
+
+            // Actions
+            const isOwner = c.authorToken === authorToken;
+            let actionsHtml = '';
+            if (isOwner) {
+                actionsHtml = `
+                    <button class="comment-btn comment-btn-secondary" onclick="editComment('${c.id}')">Edit</button>
+                    <button class="comment-btn comment-btn-danger" onclick="deleteComment('${c.id}')">Delete</button>
+                `;
+            }
+            document.getElementById('viewActions').innerHTML = actionsHtml;
+
+            // Position popup with fixed positioning
+            const leftContent = document.getElementById('leftContent');
+            const contentRect = leftContent.getBoundingClientRect();
+            
+            let leftPx = (c.x + c.width) / 100 * contentRect.width + contentRect.left + 10;
+            let topPx = c.y / 100 * contentRect.height + contentRect.top;
+            
+            const popupWidth = 320;
+            const popupHeight = 200;
+            if (leftPx + popupWidth > window.innerWidth - 20) {
+                leftPx = (c.x / 100 * contentRect.width) + contentRect.left - popupWidth - 10;
+            }
+            if (leftPx < 20) leftPx = 20;
+            if (topPx + popupHeight > window.innerHeight - 20) {
+                topPx = window.innerHeight - popupHeight - 20;
+            }
+            if (topPx < 110) topPx = 110; // Below header
+            
+            popup.style.position = 'fixed';
+            popup.style.left = leftPx + 'px';
+            popup.style.top = topPx + 'px';
+            popup.style.display = 'block';
+        }
+
+        function closeCommentPopup() {
+            document.getElementById('commentPopup').style.display = 'none';
+            document.getElementById('commentHighlight').style.display = 'none';
+            document.getElementById('commentInputView').style.display = 'block';
+            document.getElementById('commentViewMode').style.display = 'none';
+            document.getElementById('commentInput').value = '';
+            editingCommentId = null;
+            pendingBox = null;
+            if (currentBox) {
+                currentBox.remove();
+                currentBox = null;
+            }
+        }
+
+        // ========== FEEDBACK MODE ==========
+        function toggleFeedbackMode() {
+            feedbackMode = !feedbackMode;
+            document.body.classList.toggle('feedback-mode', feedbackMode);
+            document.getElementById('feedbackToggle').classList.toggle('active', feedbackMode);
+            document.getElementById('feedbackToggle').innerHTML = feedbackMode 
+                ? '<span>✓</span> Click & drag to mark area' 
+                : '<span>💬</span> Leave Feedback';
+        }
+
+        function toggleCommentsPanel() {
+            document.getElementById('commentsPanel').classList.toggle('open');
+        }
+
+        // Drawing
+        const overlay = document.getElementById('feedbackOverlay');
+        overlay.addEventListener('mousedown', startDrawing);
+        overlay.addEventListener('mousemove', draw);
+        overlay.addEventListener('mouseup', endDrawing);
+        overlay.addEventListener('mouseleave', endDrawing);
+
+        function startDrawing(e) {
+            if (!feedbackMode) return;
+            isDrawing = true;
+            const rect = document.getElementById('leftContent').getBoundingClientRect();
+            startX = ((e.clientX - rect.left) / rect.width) * 100;
+            startY = ((e.clientY - rect.top) / rect.height) * 100;
+
+            currentBox = document.createElement('div');
+            currentBox.className = 'feedback-box';
+            currentBox.style.left = startX + '%';
+            currentBox.style.top = startY + '%';
+            document.getElementById('leftContent').appendChild(currentBox);
+        }
+
+        function draw(e) {
+            if (!isDrawing || !currentBox) return;
+            const rect = document.getElementById('leftContent').getBoundingClientRect();
+            const currentX = ((e.clientX - rect.left) / rect.width) * 100;
+            const currentY = ((e.clientY - rect.top) / rect.height) * 100;
+
+            const width = currentX - startX;
+            const height = currentY - startY;
+
+            currentBox.style.left = (width < 0 ? currentX : startX) + '%';
+            currentBox.style.top = (height < 0 ? currentY : startY) + '%';
+            currentBox.style.width = Math.abs(width) + '%';
+            currentBox.style.height = Math.abs(height) + '%';
+        }
+
+        function endDrawing(e) {
+            if (!isDrawing || !currentBox) return;
+            isDrawing = false;
+            justFinishedDrawing = true;
+            setTimeout(() => { justFinishedDrawing = false; }, 300);
+
+            const rect = document.getElementById('leftContent').getBoundingClientRect();
+            const endX = ((e.clientX - rect.left) / rect.width) * 100;
+            const endY = ((e.clientY - rect.top) / rect.height) * 100;
+
+            const boxWidth = Math.abs(endX - startX);
+            const boxHeight = Math.abs(endY - startY);
+
+            if (boxWidth < 2 || boxHeight < 2) {
+                currentBox.remove();
+                currentBox = null;
+                return;
+            }
+
+            pendingBox = {
+                x: Math.min(startX, endX),
+                y: Math.min(startY, endY),
+                width: boxWidth,
+                height: boxHeight
+            };
+
+            // Check if name is set
+            if (!authorName) {
+                document.getElementById('nameModal').classList.add('active');
+                return;
+            }
+
+            showCommentInput();
+        }
+
+        function saveName() {
+            const name = document.getElementById('nameField').value.trim();
+            if (!name) return;
+            authorName = name;
+            localStorage.setItem('feedbackAuthor', name);
+            document.getElementById('nameModal').classList.remove('active');
+            // Small delay to let click event finish before showing popup
+            setTimeout(() => {
+                showCommentInput();
+            }, 50);
+        }
+
+        function showCommentInput() {
+            const popup = document.getElementById('commentPopup');
+            document.getElementById('popupTitle').textContent = 'Add Comment';
+            document.getElementById('commentInputView').style.display = 'block';
+            document.getElementById('commentViewMode').style.display = 'none';
+            
+            if (!pendingBox) {
+                console.error('No pendingBox set');
+                return;
+            }
+            
+            // Position popup next to the drawn box, ensuring it stays visible
+            const leftContent = document.getElementById('leftContent');
+            const contentRect = leftContent.getBoundingClientRect();
+            
+            // Calculate position in pixels for better control
+            let leftPx = (pendingBox.x + pendingBox.width) / 100 * contentRect.width + contentRect.left + 10;
+            let topPx = pendingBox.y / 100 * contentRect.height + contentRect.top;
+            
+            // Keep popup on screen
+            const popupWidth = 320;
+            const popupHeight = 220;
+            if (leftPx + popupWidth > window.innerWidth - 20) {
+                leftPx = (pendingBox.x / 100 * contentRect.width) + contentRect.left - popupWidth - 10;
+            }
+            if (leftPx < 20) leftPx = 20;
+            if (topPx + popupHeight > window.innerHeight - 20) {
+                topPx = window.innerHeight - popupHeight - 20;
+            }
+            // Ensure popup is below the header (header is ~100px tall)
+            if (topPx < 110) topPx = 110;
+            
+            popup.style.position = 'fixed';
+            popup.style.left = leftPx + 'px';
+            popup.style.top = topPx + 'px';
+            popup.style.display = 'block';
+            
+            setTimeout(() => {
+                document.getElementById('commentInput').focus();
+            }, 100);
+        }
+
+        async function submitComment() {
+            const comment = document.getElementById('commentInput').value.trim();
+            if (!comment) return;
+
+            try {
+                if (editingCommentId) {
+                    await fetch(`/api/mockups/${mockupId}/comments/${editingCommentId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ comment, authorToken })
+                    });
+                } else {
+                    await fetch(`/api/mockups/${mockupId}/comments`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            ...pendingBox,
+                            imageIndex: currentImageIndex, // Track which image
+                            comment,
+                            author: authorName,
+                            authorToken
+                        })
+                    });
+                }
+                closeCommentPopup();
+                // Don't turn off feedback mode - let user add more comments
+                // toggleFeedbackMode();
+                loadComments();
+            } catch (e) { console.error('Error:', e); }
+        }
+
+        function editComment(id) {
+            const c = comments.find(x => x.id === id);
+            if (!c) return;
+            editingCommentId = id;
+            document.getElementById('popupTitle').textContent = 'Edit Comment';
+            document.getElementById('commentInputView').style.display = 'block';
+            document.getElementById('commentViewMode').style.display = 'none';
+            document.getElementById('commentInput').value = c.comment;
+        }
+
+        async function deleteComment(id) {
+            if (!confirm('Delete this comment?')) return;
+            try {
+                await fetch(`/api/mockups/${mockupId}/comments/${id}?authorToken=${authorToken}`, { method: 'DELETE' });
+                closeCommentPopup();
+                loadComments();
+            } catch (e) { console.error('Error:', e); }
+        }
+
+        // Allow clicking thumbnails even in feedback mode
+        function changeImage(i) { 
+            currentImageIndex = i; 
+            updateImageDisplay(); 
+            // Update pins to show only comments for current image
+            renderCommentPins();
+        }
+        document.addEventListener('click', (e) => {
+            const popup = document.getElementById('commentPopup');
+            const nameModal = document.getElementById('nameModal');
+            // Don't close if: inside popup, clicking a pin, clicking comment card, clicking in name modal, drawing, or just finished drawing
+            if (popup.style.display === 'block' && 
+                !popup.contains(e.target) && 
+                !e.target.classList.contains('comment-pin') && 
+                !e.target.closest('.comment-card') &&
+                !nameModal.contains(e.target) &&
+                !nameModal.classList.contains('active') &&
+                !isDrawing &&
+                !justFinishedDrawing) {
+                closeCommentPopup();
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeCommentPopup();
+                if (feedbackMode) toggleFeedbackMode();
+            }
+            if (e.key === 'c' && !e.ctrlKey && !e.metaKey && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+                toggleCommentsPanel();
+            }
+        });
+
+        // ========== REVIEW MODE (for editor iframe) ==========
+        const urlParams = new URLSearchParams(window.location.search);
+        const isReviewMode = urlParams.get('reviewMode') === 'true';
+        const initialHighlight = urlParams.get('highlightComment');
+
+        if (isReviewMode) {
+            // Hide feedback button in review mode (designer is reviewing, not adding)
+            document.getElementById('feedbackToggle').style.display = 'none';
+        }
+
+        // Listen for messages from parent (editor) to highlight comments
+        window.addEventListener('message', (e) => {
+            if (e.data.type === 'highlightComment' && e.data.commentId) {
+                showComment(e.data.commentId);
+            }
+        });
+
+        // After comments load, highlight initial comment if specified
+        const originalLoadComments = loadComments;
+        loadComments = async function() {
+            await originalLoadComments();
+            if (initialHighlight && comments.length > 0) {
+                setTimeout(() => {
+                    showComment(initialHighlight);
+                }, 300);
+            }
+        };
+
+        loadMockup();
+    </script>
+</body>
+</html>

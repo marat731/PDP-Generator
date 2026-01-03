@@ -1,0 +1,1839 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Walmart Mockup Editor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --walmart-blue: #0071dc;
+            --walmart-dark-blue: #004f9a;
+            --walmart-yellow: #ffc220;
+            --walmart-green: #2a8703;
+            --text-primary: #2e2f32;
+            --text-secondary: #46474a;
+            --text-muted: #74767c;
+            --border-color: #e6e6e6;
+            --bg-gray: #f2f2f2;
+            --white: #fff;
+        }
+
+        body {
+            font-family: Bogle, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background: var(--bg-gray);
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        /* Control Bar */
+        .control-bar {
+            background: var(--walmart-dark-blue);
+            color: white;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .control-bar h1 {
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-bar h1 a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+        }
+
+        .control-bar h1 a:hover {
+            opacity: 1;
+        }
+
+        .spark-icon {
+            width: 24px;
+            height: 24px;
+            background: var(--walmart-yellow);
+            border-radius: 50%;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .save-status {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--walmart-yellow);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid rgba(255,255,255,0.5);
+        }
+
+        .btn-feedback {
+            background: #e91e63;
+            color: white;
+        }
+
+        /* Feedback Panel */
+        .feedback-panel {
+            position: fixed;
+            top: 0;
+            right: -420px;
+            width: 400px;
+            height: 100%;
+            background: white;
+            box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+            z-index: 1000;
+            transition: right 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+        .feedback-panel.open { right: 0; }
+        .feedback-panel-header {
+            background: #e91e63;
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .feedback-panel-title { font-size: 16px; font-weight: 700; }
+        .feedback-panel-close { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
+        .feedback-list { flex: 1; overflow-y: auto; padding: 16px; }
+        .feedback-empty { text-align: center; color: var(--text-muted); padding: 40px 20px; }
+        .feedback-card {
+            background: var(--bg-gray);
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+        .feedback-card.resolved { opacity: 0.5; }
+        .feedback-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        .feedback-card-author { font-weight: 600; font-size: 13px; }
+        .feedback-card-date { font-size: 11px; color: var(--text-muted); }
+        .feedback-card-text { font-size: 13px; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.5; }
+        .feedback-card-actions { display: flex; gap: 8px; }
+        .feedback-resolve-btn {
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .feedback-resolve-btn:hover { background: #c8e6c9; }
+        .feedback-resolve-btn.resolved {
+            background: #ffebee;
+            color: #c62828;
+        }
+        .feedback-delete-btn {
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 11px;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            background: white;
+            color: var(--text-muted);
+        }
+        .feedback-delete-btn:hover { background: #ffebee; color: #c62828; border-color: #ffcdd2; }
+        .feedback-position {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .feedback-preview-btn {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .preview-comments-btn {
+            width: 100%;
+            padding: 10px 16px;
+            background: #e91e63;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .preview-comments-btn:hover {
+            background: #c2185b;
+        }
+
+        /* Version History */
+        .version-section {
+            border-top: 1px solid var(--border-color);
+            padding: 16px;
+        }
+        .version-title { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+        .version-list { max-height: 200px; overflow-y: auto; }
+        .version-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            background: var(--bg-gray);
+            border-radius: 6px;
+            margin-bottom: 6px;
+            font-size: 12px;
+        }
+        .version-item:hover { background: #e3e3e3; }
+        .version-link { color: var(--walmart-blue); cursor: pointer; }
+
+        /* Feedback Review Modal */
+        .feedback-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+            padding: 20px;
+        }
+        .feedback-modal.active {
+            display: flex;
+            flex-direction: column;
+        }
+        .feedback-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            background: white;
+            border-radius: 12px 12px 0 0;
+        }
+        .feedback-modal-title {
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .feedback-modal-nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .feedback-nav-btn {
+            padding: 8px 16px;
+            border: 1px solid var(--border-color);
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .feedback-nav-btn:hover {
+            background: var(--bg-gray);
+        }
+        .feedback-nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .feedback-modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--text-muted);
+            padding: 0 8px;
+        }
+        .feedback-modal-close:hover {
+            color: var(--text-primary);
+        }
+        .feedback-modal-body {
+            flex: 1;
+            background: white;
+            border-radius: 0 0 12px 12px;
+            overflow: hidden;
+            display: flex;
+        }
+        .feedback-modal-viewer {
+            flex: 1;
+            border: none;
+        }
+        .feedback-modal-sidebar {
+            width: 320px;
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-gray);
+        }
+        .feedback-sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            background: white;
+        }
+        .feedback-sidebar-title {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .feedback-sidebar-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+        .feedback-sidebar-card {
+            background: white;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: border-color 0.2s;
+        }
+        .feedback-sidebar-card:hover {
+            border-color: var(--border-color);
+        }
+        .feedback-sidebar-card.active {
+            border-color: #e91e63;
+        }
+        .feedback-sidebar-card.resolved {
+            opacity: 0.6;
+        }
+        .feedback-sidebar-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            background: #e91e63;
+            color: white;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: 700;
+            margin-right: 8px;
+        }
+        .feedback-sidebar-card.resolved .feedback-sidebar-number {
+            background: #9e9e9e;
+        }
+        .feedback-sidebar-author {
+            font-weight: 600;
+            font-size: 13px;
+        }
+        .feedback-sidebar-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+        .feedback-sidebar-text {
+            font-size: 13px;
+            margin-top: 8px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+        .feedback-sidebar-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 6px;
+        }
+        .feedback-sidebar-btn {
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+        .feedback-sidebar-btn-resolve {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .feedback-sidebar-btn-resolve:hover {
+            background: #c8e6c9;
+        }
+        .feedback-sidebar-btn-resolve.resolved {
+            background: #fff3e0;
+            color: #e65100;
+        }
+        .feedback-sidebar-btn-delete {
+            background: #fafafa;
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+        }
+        .feedback-sidebar-btn-delete:hover {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        /* Comment highlight in preview */
+        .preview-comment-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .preview-comment-pin {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: #e91e63;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            pointer-events: auto;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+        .preview-comment-pin.resolved { background: #9e9e9e; }
+        .preview-comment-highlight {
+            position: absolute;
+            border: 3px solid #e91e63;
+            background: rgba(233, 30, 99, 0.15);
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        /* Layout */
+        .app-layout {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            min-height: calc(100vh - 56px);
+        }
+
+        /* Editor Panel */
+        .editor-panel {
+            background: white;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: calc(100vh - 56px);
+            border-right: 1px solid var(--border-color);
+        }
+
+        .editor-section {
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .editor-section:last-child {
+            border-bottom: none;
+        }
+
+        .editor-section h3 {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--walmart-blue);
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .help-text {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Image Upload */
+        .image-upload-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            background: var(--bg-gray);
+        }
+
+        .image-upload-zone:hover {
+            border-color: var(--walmart-blue);
+            background: #f0f7ff;
+        }
+
+        .upload-icon {
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
+
+        .upload-text {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .image-preview-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .image-preview-item {
+            width: 56px;
+            height: 56px;
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+            border: 2px solid var(--border-color);
+        }
+
+        .image-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-preview-item .remove-btn {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 16px;
+            height: 16px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 10px;
+        }
+
+        /* Brand Images */
+        .brand-preview-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .brand-preview-item {
+            width: 100%;
+            aspect-ratio: 1200/743;
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+            border: 2px solid var(--border-color);
+        }
+
+        .brand-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .brand-preview-item .remove-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        /* Bullet Points */
+        .bullet-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .bullet-item {
+            display: flex;
+            gap: 6px;
+        }
+
+        .bullet-item input {
+            flex: 1;
+        }
+
+        .bullet-remove {
+            width: 32px;
+            height: 32px;
+            background: var(--bg-gray);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .bullet-remove:hover {
+            background: #fee;
+            border-color: #fcc;
+            color: #c00;
+        }
+
+        .add-bullet-btn {
+            background: none;
+            border: 1px dashed var(--border-color);
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            color: var(--walmart-blue);
+            font-size: 12px;
+            margin-top: 8px;
+            width: 100%;
+        }
+
+        /* Preview Area */
+        .preview-area {
+            padding: 20px;
+            overflow-y: auto;
+            background: var(--bg-gray);
+        }
+
+        .preview-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        /* Walmart Preview */
+        .walmart-preview {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .walmart-header {
+            background: var(--walmart-blue);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .walmart-logo-spark {
+            width: 24px;
+            height: 24px;
+            background: var(--walmart-yellow);
+            border-radius: 50%;
+        }
+
+        .walmart-search {
+            flex: 1;
+            max-width: 400px;
+            background: white;
+            border-radius: 20px;
+            height: 32px;
+        }
+
+        .walmart-nav {
+            background: var(--walmart-blue);
+            padding: 6px 16px;
+            display: flex;
+            gap: 16px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .walmart-nav span {
+            color: white;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+        .preview-content {
+            padding: 16px;
+            position: relative;
+        }
+
+        .preview-product-top {
+            display: grid;
+            grid-template-columns: 540px minmax(150px, 280px) 240px;
+            gap: 16px;
+            margin-bottom: 24px;
+            align-items: start;
+        }
+
+        /* Gallery Preview */
+        .preview-gallery {
+            display: flex;
+            gap: 8px;
+            align-self: start;
+        }
+
+        .preview-thumbs {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            width: 48px;
+        }
+
+        .preview-thumb {
+            width: 48px;
+            height: 48px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .preview-thumb.active {
+            border-color: var(--walmart-blue);
+        }
+
+        .preview-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .preview-main-image {
+            width: 470px;
+            height: 470px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: white;
+            flex-shrink: 0;
+        }
+
+        .preview-main-image img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .preview-placeholder {
+            color: var(--text-muted);
+            text-align: center;
+            font-size: 11px;
+        }
+
+        /* Product Info Preview */
+        .preview-info {
+            font-size: 11px;
+        }
+
+        .preview-badge {
+            display: inline-block;
+            background: #f5a623;
+            color: white;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 3px 6px;
+            border-radius: 3px;
+            margin-bottom: 6px;
+        }
+
+        .preview-brand {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .preview-title {
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 8px;
+        }
+
+        .preview-rating {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 12px;
+            font-size: 10px;
+        }
+
+        .preview-stars {
+            color: var(--walmart-yellow);
+        }
+
+        .preview-section-title {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 8px 0;
+            border-top: 1px solid var(--border-color);
+            margin-top: 8px;
+        }
+
+        .preview-ingredients {
+            font-size: 10px;
+            color: var(--text-secondary);
+            padding: 4px 0;
+        }
+
+        .preview-bullets {
+            font-size: 10px;
+            padding-left: 14px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Buy Box Preview */
+        .preview-buybox {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 10px;
+            position: sticky;
+            top: 70px;
+            height: fit-content;
+            align-self: start;
+        }
+
+        .preview-price {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .preview-savings {
+            color: var(--walmart-green);
+            font-size: 9px;
+            margin-bottom: 8px;
+        }
+
+        .preview-cart-btn {
+            width: 100%;
+            padding: 8px;
+            background: var(--walmart-blue);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        /* About Section Preview */
+        .preview-about-section {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .preview-about-title {
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .preview-collapse-item {
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            margin-bottom: 4px;
+        }
+
+        .preview-collapse-header {
+            padding: 8px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .preview-collapse-content {
+            padding: 0 10px 10px;
+            font-size: 10px;
+            color: var(--text-secondary);
+        }
+
+        .preview-brand-images img {
+            width: 100%;
+            border-radius: 4px;
+            margin-bottom: 6px;
+        }
+
+        /* Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 28px;
+            border-radius: 12px;
+            max-width: 440px;
+            width: 90%;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 14px;
+        }
+
+        .url-box {
+            background: var(--bg-gray);
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            word-break: break-all;
+            margin-bottom: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .copy-btn {
+            background: var(--walmart-blue);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 12px;
+        }
+
+        .modal-close {
+            width: 100%;
+            margin-top: 16px;
+            padding: 10px;
+            background: none;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        @media (max-width: 1200px) {
+            .app-layout {
+                grid-template-columns: 1fr;
+            }
+            .preview-product-top {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Control Bar -->
+    <div class="control-bar">
+        <h1>
+            <div class="spark-icon"></div>
+            <a href="/">Dashboard</a> / Editor
+        </h1>
+        <div class="control-buttons">
+            <span class="save-status" id="saveStatus"></span>
+            <button class="btn btn-feedback" onclick="openFeedbackModal()" id="feedbackBtn" style="display:none;">
+                💬 Review Feedback (<span id="feedbackCount">0</span>)
+            </button>
+            <a href="/" class="btn btn-secondary">← Dashboard</a>
+            <button class="btn btn-primary" onclick="saveMockup()">Save & Share</button>
+        </div>
+    </div>
+
+    <div class="app-layout">
+        <!-- Editor Panel -->
+        <div class="editor-panel">
+            <!-- Product Images -->
+            <div class="editor-section">
+                <h3>📸 Product Images</h3>
+                <div class="image-upload-zone" id="imageUploadZone">
+                    <div class="upload-icon">📷</div>
+                    <div class="upload-text">Drop images or click to upload</div>
+                </div>
+                <input type="file" id="imageInput" accept="image/*" multiple style="display: none;">
+                <div class="image-preview-grid" id="imagePreviewGrid"></div>
+            </div>
+
+            <!-- Basic Info -->
+            <div class="editor-section">
+                <h3>📝 Product Information</h3>
+                <div class="form-group">
+                    <label>Brand Name</label>
+                    <input type="text" id="brandInput" placeholder="e.g., Nate's">
+                </div>
+                <div class="form-group">
+                    <label>Product Title</label>
+                    <input type="text" id="titleInput" placeholder="Full product name with size">
+                </div>
+                <div class="form-group">
+                    <label>Price ($)</label>
+                    <input type="text" id="priceInput" placeholder="7.97">
+                </div>
+                <div class="form-group">
+                    <label>Pack Size</label>
+                    <input type="text" id="packSizeInput" placeholder="e.g., Single, 16 fl oz">
+                </div>
+                <div class="form-group">
+                    <label>Ingredients</label>
+                    <input type="text" id="ingredientsInput" placeholder="e.g., Honey">
+                </div>
+            </div>
+
+            <!-- About This Item - Short bullets -->
+            <div class="editor-section">
+                <h3>📋 About This Item (Short Bullets)</h3>
+                <p class="help-text" style="margin-bottom: 10px;">These appear in the collapsed "About this item" section under ingredients.</p>
+                <div class="bullet-list" id="bulletList">
+                    <div class="bullet-item">
+                        <input type="text" placeholder="Feature or benefit" class="bullet-input">
+                        <button class="bullet-remove" onclick="removeBullet(this, 'bulletList')">✕</button>
+                    </div>
+                </div>
+                <button class="add-bullet-btn" onclick="addBullet('bulletList')">+ Add Bullet</button>
+            </div>
+
+            <!-- Product Details - Full description & separate bullets -->
+            <div class="editor-section">
+                <h3>📄 Product Details (Expanded Section)</h3>
+                <p class="help-text" style="margin-bottom: 10px;">This appears when clicking "Product details" in the About section.</p>
+                <div class="form-group">
+                    <label>Full Description</label>
+                    <textarea id="fullDescriptionInput" placeholder="Detailed product description..." rows="4"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Detail Bullets</label>
+                    <div class="bullet-list" id="detailsBulletList">
+                        <div class="bullet-item">
+                            <input type="text" placeholder="Detailed feature" class="details-bullet-input">
+                            <button class="bullet-remove" onclick="removeBullet(this, 'detailsBulletList')">✕</button>
+                        </div>
+                    </div>
+                    <button class="add-bullet-btn" onclick="addBullet('detailsBulletList', 'details-bullet-input')">+ Add Detail Bullet</button>
+                </div>
+            </div>
+
+            <!-- About the Brand Images -->
+            <div class="editor-section">
+                <h3>🏷️ About the Brand Images</h3>
+                <p class="help-text" style="margin-bottom: 10px;">Upload up to 3 brand images (1200×743px). These stack in "About the brand".</p>
+                <div class="image-upload-zone" id="brandUploadZone">
+                    <div class="upload-icon">🖼️</div>
+                    <div class="upload-text">Drop brand images or click</div>
+                </div>
+                <input type="file" id="brandImageInput" accept="image/*" multiple style="display: none;">
+                <div class="brand-preview-grid" id="brandPreviewGrid"></div>
+            </div>
+
+            <!-- Privacy -->
+            <div class="editor-section">
+                <h3>🔒 Privacy Settings</h3>
+                <div class="form-group">
+                    <label>Password (Optional)</label>
+                    <input type="password" id="passwordInput" placeholder="Leave blank for public">
+                    <div class="help-text">Clients need this to view</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview Area -->
+        <div class="preview-area">
+            <div class="preview-label">Live Preview</div>
+            
+            <div class="walmart-preview">
+                <div class="walmart-header">
+                    <div class="walmart-logo-spark"></div>
+                    <div class="walmart-search"></div>
+                </div>
+                <div class="walmart-nav">
+                    <span>Departments</span>
+                    <span>Services</span>
+                    <span>Clearance</span>
+                    <span>Rollbacks</span>
+                    <span>Walmart+</span>
+                </div>
+
+                <div class="preview-content">
+                    <!-- Comment pins/highlights overlay - inside preview-content to match viewer positioning -->
+                    <div class="preview-comment-overlay" id="previewCommentOverlay"></div>
+                    <div class="preview-comment-highlight" id="previewCommentHighlight" style="display:none;"></div>
+                    
+                    <div class="preview-product-top">
+                        <!-- Gallery -->
+                        <div class="preview-gallery">
+                            <div class="preview-thumbs" id="previewThumbs"></div>
+                            <div class="preview-main-image" id="previewMainImage">
+                                <div class="preview-placeholder">
+                                    <div style="font-size: 32px;">📦</div>
+                                    <div>Upload images</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Product Info -->
+                        <div class="preview-info">
+                            <span class="preview-badge">Best seller</span>
+                            <div class="preview-brand" id="previewBrand">Brand</div>
+                            <h1 class="preview-title" id="previewTitle">Product Title</h1>
+                            <div class="preview-rating">
+                                <span class="preview-stars">★★★★★</span>
+                                <span>(4.6) 2,402 reviews</span>
+                            </div>
+
+                            <div class="preview-section-title">Pack Size: <span id="previewPackSize">Single</span></div>
+
+                            <div class="preview-section-title">Ingredients ▼</div>
+                            <div class="preview-ingredients" id="previewIngredients">Honey</div>
+
+                            <div class="preview-section-title">About this item ▼</div>
+                            <ul class="preview-bullets" id="previewBullets">
+                                <li>Feature 1</li>
+                            </ul>
+                        </div>
+
+                        <!-- Buy Box -->
+                        <div class="preview-buybox">
+                            <div>Now <span class="preview-price" id="previewPrice">$7.97</span></div>
+                            <div class="preview-savings">You save $3.75</div>
+                            <button class="preview-cart-btn">Add to cart</button>
+                            <div style="font-size: 9px; color: #74767c;">
+                                🏪 Sold by Walmart.com<br>
+                                ✓ Free 90-day returns
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- About Section -->
+                    <div class="preview-about-section">
+                        <h2 class="preview-about-title">About this item</h2>
+                        
+                        <div class="preview-collapse-item">
+                            <div class="preview-collapse-header">
+                                <span>Product details</span>
+                                <span>▼</span>
+                            </div>
+                            <div class="preview-collapse-content">
+                                <p id="previewFullDescription">Description...</p>
+                                <ul class="preview-bullets" id="previewDetailsBullets" style="margin-top: 8px;">
+                                    <li>Detail 1</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="preview-collapse-item">
+                            <div class="preview-collapse-header"><span>Specifications</span><span>▸</span></div>
+                        </div>
+                        <div class="preview-collapse-item">
+                            <div class="preview-collapse-header"><span>Directions</span><span>▸</span></div>
+                        </div>
+                        <div class="preview-collapse-item">
+                            <div class="preview-collapse-header"><span>Warranty</span><span>▸</span></div>
+                        </div>
+                        <div class="preview-collapse-item">
+                            <div class="preview-collapse-header"><span>Ingredients</span><span>▸</span></div>
+                        </div>
+
+                        <div class="preview-collapse-item">
+                            <div class="preview-collapse-header"><span>About the brand</span><span>▼</span></div>
+                            <div class="preview-collapse-content">
+                                <div class="preview-brand-images" id="previewBrandImages">
+                                    <div style="text-align: center; color: #74767c; padding: 16px;">Upload brand images</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Panel -->
+    <div class="feedback-panel" id="feedbackPanel">
+        <div class="feedback-panel-header">
+            <span class="feedback-panel-title">💬 Client Feedback</span>
+            <button class="feedback-panel-close" onclick="toggleFeedbackPanel()">×</button>
+        </div>
+        <div class="feedback-preview-btn" id="feedbackPreviewBtn" style="display:none;">
+            <button onclick="previewWithComments()" class="preview-comments-btn">
+                👁️ Preview with Comment Highlights
+            </button>
+        </div>
+        <div class="feedback-list" id="feedbackList">
+            <div class="feedback-empty">No feedback yet</div>
+        </div>
+        <div class="version-section" id="versionSection" style="display:none;">
+            <div class="version-title">📁 Version History</div>
+            <div class="version-list" id="versionList"></div>
+        </div>
+    </div>
+
+    <!-- Feedback Review Modal -->
+    <div class="feedback-modal" id="feedbackModal">
+        <div class="feedback-modal-header">
+            <div class="feedback-modal-title">
+                <span>💬 Review Feedback</span>
+                <div class="feedback-modal-nav">
+                    <button class="feedback-nav-btn" onclick="navigateFeedback(-1)" id="prevFeedbackBtn">← Previous</button>
+                    <span id="feedbackNavPosition">1 of 3</span>
+                    <button class="feedback-nav-btn" onclick="navigateFeedback(1)" id="nextFeedbackBtn">Next →</button>
+                </div>
+            </div>
+            <button class="feedback-modal-close" onclick="closeFeedbackModal()">×</button>
+        </div>
+        <div class="feedback-modal-body">
+            <iframe class="feedback-modal-viewer" id="feedbackViewer"></iframe>
+            <div class="feedback-modal-sidebar">
+                <div class="feedback-sidebar-header">
+                    <div class="feedback-sidebar-title">All Comments</div>
+                </div>
+                <div class="feedback-sidebar-list" id="feedbackSidebarList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div class="modal" id="shareModal">
+        <div class="modal-content">
+            <h2 class="modal-title">Mockup Saved! 🎉</h2>
+            <p style="margin-bottom: 12px; font-size: 13px;">Share this link with your client:</p>
+            <div class="url-box" id="shareUrl"></div>
+            <button class="copy-btn" onclick="copyUrl()">Copy Share Link</button>
+            <div class="help-text" style="margin-top: 8px;">
+                <span id="passwordNote" style="display: none; color: #f5a623;">⚠️ Password protected</span>
+            </div>
+            <button class="modal-close" onclick="closeModal()">Done</button>
+        </div>
+    </div>
+
+    <script>
+        let uploadedImages = [];
+        let brandImages = [];
+        let currentImageIndex = 0;
+        let currentMockupId = null;
+
+        // Product Image Upload
+        const imageUploadZone = document.getElementById('imageUploadZone');
+        const imageInput = document.getElementById('imageInput');
+        
+        imageUploadZone.addEventListener('click', () => imageInput.click());
+        imageInput.addEventListener('change', (e) => handleProductImages(e.target.files));
+
+        function handleProductImages(files) {
+            Array.from(files).forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        uploadedImages.push(e.target.result);
+                        updateProductImagePreviews();
+                        updatePreview();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        function updateProductImagePreviews() {
+            document.getElementById('imagePreviewGrid').innerHTML = uploadedImages.map((img, i) => `
+                <div class="image-preview-item">
+                    <img src="${img}">
+                    <button class="remove-btn" onclick="removeProductImage(${i})">✕</button>
+                </div>
+            `).join('');
+        }
+
+        function removeProductImage(index) {
+            uploadedImages.splice(index, 1);
+            if (currentImageIndex >= uploadedImages.length) currentImageIndex = Math.max(0, uploadedImages.length - 1);
+            updateProductImagePreviews();
+            updatePreview();
+        }
+
+        // Brand Image Upload
+        const brandUploadZone = document.getElementById('brandUploadZone');
+        const brandImageInput = document.getElementById('brandImageInput');
+        
+        brandUploadZone.addEventListener('click', () => brandImageInput.click());
+        brandImageInput.addEventListener('change', (e) => handleBrandImages(e.target.files));
+
+        function handleBrandImages(files) {
+            Array.from(files).forEach(file => {
+                if (file.type.startsWith('image/') && brandImages.length < 3) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        brandImages.push(e.target.result);
+                        updateBrandImagePreviews();
+                        updatePreview();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        function updateBrandImagePreviews() {
+            document.getElementById('brandPreviewGrid').innerHTML = brandImages.map((img, i) => `
+                <div class="brand-preview-item">
+                    <img src="${img}">
+                    <button class="remove-btn" onclick="removeBrandImage(${i})">✕</button>
+                </div>
+            `).join('');
+        }
+
+        function removeBrandImage(index) {
+            brandImages.splice(index, 1);
+            updateBrandImagePreviews();
+            updatePreview();
+        }
+
+        // Bullets
+        function addBullet(listId, inputClass = 'bullet-input') {
+            const list = document.getElementById(listId);
+            const div = document.createElement('div');
+            div.className = 'bullet-item';
+            div.innerHTML = `<input type="text" placeholder="Feature" class="${inputClass}"><button class="bullet-remove" onclick="removeBullet(this, '${listId}')">✕</button>`;
+            div.querySelector('input').addEventListener('input', updatePreview);
+            list.appendChild(div);
+        }
+
+        function removeBullet(btn, listId) {
+            btn.parentElement.remove();
+            updatePreview();
+        }
+
+        // Live Preview
+        function updatePreview() {
+            document.getElementById('previewBrand').textContent = document.getElementById('brandInput').value || 'Brand';
+            document.getElementById('previewTitle').textContent = document.getElementById('titleInput').value || 'Product Title';
+            
+            const price = parseFloat(document.getElementById('priceInput').value) || 0;
+            document.getElementById('previewPrice').textContent = `$${price.toFixed(2)}`;
+            
+            document.getElementById('previewPackSize').textContent = document.getElementById('packSizeInput').value || 'Single';
+            document.getElementById('previewIngredients').textContent = document.getElementById('ingredientsInput').value || 'Ingredients';
+            document.getElementById('previewFullDescription').textContent = document.getElementById('fullDescriptionInput').value || 'Description...';
+            
+            // About bullets (short)
+            const bullets = Array.from(document.querySelectorAll('.bullet-input')).map(i => i.value).filter(v => v.trim());
+            document.getElementById('previewBullets').innerHTML = bullets.length ? bullets.map(b => `<li>${b}</li>`).join('') : '<li>Add bullets</li>';
+            
+            // Details bullets (separate)
+            const detailsBullets = Array.from(document.querySelectorAll('.details-bullet-input')).map(i => i.value).filter(v => v.trim());
+            document.getElementById('previewDetailsBullets').innerHTML = detailsBullets.length ? detailsBullets.map(b => `<li>${b}</li>`).join('') : '<li>Add detail bullets</li>';
+            
+            // Product Images
+            if (uploadedImages.length > 0) {
+                document.getElementById('previewMainImage').innerHTML = `<img src="${uploadedImages[currentImageIndex]}">`;
+                document.getElementById('previewThumbs').innerHTML = uploadedImages.slice(0, 5).map((img, i) => `
+                    <div class="preview-thumb ${i === currentImageIndex ? 'active' : ''}" onclick="currentImageIndex=${i};updatePreview();if(typeof renderFeedback==='function')renderFeedback();">
+                        <img src="${img}">
+                    </div>
+                `).join('');
+            } else {
+                document.getElementById('previewMainImage').innerHTML = '<div class="preview-placeholder"><div style="font-size: 32px;">📦</div><div>Upload images</div></div>';
+                document.getElementById('previewThumbs').innerHTML = '';
+            }
+            
+            // Brand Images
+            if (brandImages.length > 0) {
+                document.getElementById('previewBrandImages').innerHTML = brandImages.map(img => `<img src="${img}">`).join('');
+            } else {
+                document.getElementById('previewBrandImages').innerHTML = '<div style="text-align: center; color: #74767c; padding: 16px;">Upload brand images</div>';
+            }
+        }
+
+        // Input listeners
+        ['brandInput', 'titleInput', 'priceInput', 'packSizeInput', 'ingredientsInput', 'fullDescriptionInput'].forEach(id => {
+            document.getElementById(id).addEventListener('input', updatePreview);
+        });
+        document.getElementById('bulletList').addEventListener('input', updatePreview);
+        document.getElementById('detailsBulletList').addEventListener('input', updatePreview);
+
+        // Save
+        function getMockupData() {
+            return {
+                brand: document.getElementById('brandInput').value,
+                title: document.getElementById('titleInput').value,
+                price: document.getElementById('priceInput').value,
+                packSize: document.getElementById('packSizeInput').value,
+                ingredients: document.getElementById('ingredientsInput').value,
+                fullDescription: document.getElementById('fullDescriptionInput').value,
+                bullets: Array.from(document.querySelectorAll('.bullet-input')).map(i => i.value),
+                detailsBullets: Array.from(document.querySelectorAll('.details-bullet-input')).map(i => i.value),
+                images: uploadedImages,
+                brandImages: brandImages
+            };
+        }
+
+        async function saveMockup() {
+            const saveStatus = document.getElementById('saveStatus');
+            saveStatus.textContent = 'Saving...';
+            
+            try {
+                const data = getMockupData();
+                const password = document.getElementById('passwordInput').value;
+                
+                let response;
+                if (currentMockupId) {
+                    response = await fetch(`/api/mockups/${currentMockupId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ data, password: password || null })
+                    });
+                } else {
+                    response = await fetch('/api/mockups', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ data, password: password || null })
+                    });
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    if (!currentMockupId) {
+                        currentMockupId = result.id;
+                        history.replaceState(null, '', `/editor?id=${currentMockupId}`);
+                    }
+                    saveStatus.textContent = 'Saved!';
+                    setTimeout(() => saveStatus.textContent = '', 2000);
+                    
+                    document.getElementById('shareUrl').textContent = `${window.location.origin}/mockup/${currentMockupId}`;
+                    document.getElementById('passwordNote').style.display = password ? 'inline' : 'none';
+                    document.getElementById('shareModal').classList.add('active');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                saveStatus.textContent = 'Error';
+            }
+        }
+
+        function copyUrl() {
+            navigator.clipboard.writeText(document.getElementById('shareUrl').textContent);
+            event.target.textContent = 'Copied!';
+            setTimeout(() => event.target.textContent = 'Copy Share Link', 2000);
+        }
+
+        function closeModal() {
+            document.getElementById('shareModal').classList.remove('active');
+        }
+
+        // Load existing mockup
+        async function loadMockup(id) {
+            try {
+                const response = await fetch(`/api/mockups/${id}`);
+                const result = await response.json();
+                
+                if (!result.success) return;
+                
+                currentMockupId = id;
+                const data = result.data;
+                
+                document.getElementById('brandInput').value = data.brand || '';
+                document.getElementById('titleInput').value = data.title || '';
+                document.getElementById('priceInput').value = data.price || '';
+                document.getElementById('packSizeInput').value = data.packSize || '';
+                document.getElementById('ingredientsInput').value = data.ingredients || '';
+                document.getElementById('fullDescriptionInput').value = data.fullDescription || '';
+                
+                uploadedImages = data.images || [];
+                brandImages = data.brandImages || [];
+                
+                updateProductImagePreviews();
+                updateBrandImagePreviews();
+                
+                // About bullets
+                const bulletList = document.getElementById('bulletList');
+                bulletList.innerHTML = '';
+                (data.bullets || ['']).forEach(bullet => {
+                    const div = document.createElement('div');
+                    div.className = 'bullet-item';
+                    div.innerHTML = `<input type="text" placeholder="Feature" class="bullet-input" value="${bullet || ''}"><button class="bullet-remove" onclick="removeBullet(this, 'bulletList')">✕</button>`;
+                    div.querySelector('input').addEventListener('input', updatePreview);
+                    bulletList.appendChild(div);
+                });
+                
+                // Details bullets
+                const detailsList = document.getElementById('detailsBulletList');
+                detailsList.innerHTML = '';
+                (data.detailsBullets || ['']).forEach(bullet => {
+                    const div = document.createElement('div');
+                    div.className = 'bullet-item';
+                    div.innerHTML = `<input type="text" placeholder="Detail" class="details-bullet-input" value="${bullet || ''}"><button class="bullet-remove" onclick="removeBullet(this, 'detailsBulletList')">✕</button>`;
+                    div.querySelector('input').addEventListener('input', updatePreview);
+                    detailsList.appendChild(div);
+                });
+                
+                updatePreview();
+                
+                // Load feedback if editing existing mockup
+                loadFeedback(id);
+                loadVersions(id);
+            } catch (error) {
+                console.error('Error loading:', error);
+            }
+        }
+
+        // ========== FEEDBACK FUNCTIONS ==========
+        let feedbackComments = [];
+
+        async function loadFeedback(mockupId) {
+            if (!mockupId) return;
+            try {
+                const res = await fetch(`/api/mockups/${mockupId}/comments`);
+                const data = await res.json();
+                if (data.success) {
+                    feedbackComments = data.comments;
+                    renderFeedback();
+                    
+                    // Show feedback button if there are comments
+                    const unresolvedCount = feedbackComments.filter(c => !c.resolved).length;
+                    document.getElementById('feedbackBtn').style.display = feedbackComments.length > 0 ? 'block' : 'none';
+                    document.getElementById('feedbackCount').textContent = unresolvedCount;
+                    
+                    // Show preview button if there are comments
+                    document.getElementById('feedbackPreviewBtn').style.display = feedbackComments.length > 0 ? 'block' : 'none';
+                }
+            } catch (e) { console.error('Error loading feedback:', e); }
+        }
+
+        function renderFeedback() {
+            const list = document.getElementById('feedbackList');
+            const overlay = document.getElementById('previewCommentOverlay');
+            
+            if (feedbackComments.length === 0) {
+                list.innerHTML = '<div class="feedback-empty">No feedback yet.<br>Share the mockup link with your client to collect feedback.</div>';
+                overlay.innerHTML = '';
+                return;
+            }
+            
+            const totalImages = uploadedImages.length;
+            
+            // Render feedback list
+            list.innerHTML = feedbackComments.map((c, i) => {
+                const imageLabel = (c.imageIndex !== undefined && c.imageIndex !== null && totalImages > 1) 
+                    ? `<span style="background:#e3f2fd;color:#1565c0;padding:2px 6px;border-radius:4px;font-size:10px;margin-left:6px;">Image ${c.imageIndex + 1}</span>` 
+                    : '';
+                return `
+                <div class="feedback-card ${c.resolved ? 'resolved' : ''}" onclick="showFeedbackHighlight('${c.id}')">
+                    <div class="feedback-card-header">
+                        <span class="feedback-card-author">#${i + 1} ${c.author}${imageLabel}</span>
+                        <span class="feedback-card-date">${new Date(c.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    <div class="feedback-card-text">${c.comment}</div>
+                    <div class="feedback-card-actions">
+                        <button class="feedback-resolve-btn ${c.resolved ? 'resolved' : ''}" onclick="event.stopPropagation(); toggleResolve('${c.id}', ${!c.resolved})">
+                            ${c.resolved ? '↩ Unresolve' : '✓ Mark Resolved'}
+                        </button>
+                        <button class="feedback-delete-btn" onclick="event.stopPropagation(); deleteFeedback('${c.id}')">Delete</button>
+                    </div>
+                    <div class="feedback-position">📍 Click to highlight on preview</div>
+                </div>
+            `}).join('');
+            
+            // Render pins on preview (only for current image)
+            const currentImageComments = feedbackComments.filter(c => 
+                c.imageIndex === undefined || c.imageIndex === null || c.imageIndex === currentImageIndex
+            );
+            overlay.innerHTML = currentImageComments.map((c) => {
+                const globalIndex = feedbackComments.indexOf(c) + 1;
+                return `
+                <div class="preview-comment-pin ${c.resolved ? 'resolved' : ''}" 
+                     style="left:${c.x}%;top:${c.y}%;"
+                     onclick="showFeedbackHighlight('${c.id}')"
+                     title="${c.author}: ${c.comment.substring(0, 50)}...">${globalIndex}</div>
+            `}).join('');
+        }
+        
+        function showFeedbackHighlight(commentId) {
+            const c = feedbackComments.find(x => x.id === commentId);
+            if (!c) return;
+            
+            // Switch to the correct image first if comment has imageIndex
+            if (c.imageIndex !== undefined && c.imageIndex !== null && c.imageIndex !== currentImageIndex) {
+                currentImageIndex = c.imageIndex;
+                updatePreview();
+                renderFeedback(); // Re-render pins for new image
+            }
+            
+            const highlight = document.getElementById('previewCommentHighlight');
+            highlight.style.left = c.x + '%';
+            highlight.style.top = c.y + '%';
+            highlight.style.width = c.width + '%';
+            highlight.style.height = c.height + '%';
+            highlight.style.display = 'block';
+            
+            // Scroll to make sure highlight is visible
+            const preview = document.querySelector('.preview-content');
+            if (preview) {
+                const highlightTop = (c.y / 100) * preview.scrollHeight;
+                preview.scrollTo({ top: Math.max(0, highlightTop - 100), behavior: 'smooth' });
+            }
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                highlight.style.display = 'none';
+            }, 3000);
+        }
+
+        async function toggleResolve(commentId, resolved) {
+            try {
+                await fetch(`/api/mockups/${currentMockupId}/comments/${commentId}/resolve`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ resolved })
+                });
+                loadFeedback(currentMockupId);
+            } catch (e) { console.error('Error:', e); }
+        }
+
+        async function deleteFeedback(commentId) {
+            if (!confirm('Delete this feedback?')) return;
+            try {
+                await fetch(`/api/mockups/${currentMockupId}/comments/${commentId}`, { method: 'DELETE' });
+                loadFeedback(currentMockupId);
+            } catch (e) { console.error('Error:', e); }
+        }
+
+        function toggleFeedbackPanel() {
+            document.getElementById('feedbackPanel').classList.toggle('open');
+        }
+
+        // ========== FEEDBACK MODAL ==========
+        let currentFeedbackIndex = 0;
+
+        function openFeedbackModal(commentId = null) {
+            if (!currentMockupId) {
+                alert('Please save the mockup first.');
+                return;
+            }
+            
+            const modal = document.getElementById('feedbackModal');
+            const viewer = document.getElementById('feedbackViewer');
+            
+            // Load viewer in iframe with highlight parameter if commentId provided
+            let viewerUrl = `/mockup/${currentMockupId}?reviewMode=true`;
+            if (commentId) {
+                viewerUrl += `&highlightComment=${commentId}`;
+                currentFeedbackIndex = feedbackComments.findIndex(c => c.id === commentId);
+            } else {
+                currentFeedbackIndex = 0;
+                if (feedbackComments.length > 0) {
+                    viewerUrl += `&highlightComment=${feedbackComments[0].id}`;
+                }
+            }
+            
+            viewer.src = viewerUrl;
+            modal.classList.add('active');
+            
+            renderFeedbackSidebar();
+            updateFeedbackNav();
+        }
+
+        function closeFeedbackModal() {
+            document.getElementById('feedbackModal').classList.remove('active');
+            document.getElementById('feedbackViewer').src = '';
+            // Refresh feedback in case any were resolved
+            loadFeedback(currentMockupId);
+        }
+
+        function renderFeedbackSidebar() {
+            const list = document.getElementById('feedbackSidebarList');
+            const totalImages = uploadedImages.length;
+            
+            list.innerHTML = feedbackComments.map((c, i) => {
+                const imageLabel = (c.imageIndex !== undefined && c.imageIndex !== null && totalImages > 1) 
+                    ? `Image ${c.imageIndex + 1}` 
+                    : '';
+                return `
+                <div class="feedback-sidebar-card ${c.resolved ? 'resolved' : ''} ${i === currentFeedbackIndex ? 'active' : ''}" 
+                     onclick="goToFeedback(${i})" id="feedbackCard${i}">
+                    <div>
+                        <span class="feedback-sidebar-number">${i + 1}</span>
+                        <span class="feedback-sidebar-author">${c.author}</span>
+                    </div>
+                    <div class="feedback-sidebar-meta">${new Date(c.createdAt).toLocaleDateString()}${imageLabel ? ' • ' + imageLabel : ''}</div>
+                    <div class="feedback-sidebar-text">${c.comment}</div>
+                    <div class="feedback-sidebar-actions">
+                        <button class="feedback-sidebar-btn feedback-sidebar-btn-resolve ${c.resolved ? 'resolved' : ''}" 
+                                onclick="event.stopPropagation(); toggleResolveInModal('${c.id}', ${!c.resolved})">
+                            ${c.resolved ? '↩ Reopen' : '✓ Resolve'}
+                        </button>
+                        <button class="feedback-sidebar-btn feedback-sidebar-btn-delete" 
+                                onclick="event.stopPropagation(); deleteFeedbackInModal('${c.id}')">
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        function goToFeedback(index) {
+            if (index < 0 || index >= feedbackComments.length) return;
+            currentFeedbackIndex = index;
+            
+            const comment = feedbackComments[index];
+            const viewer = document.getElementById('feedbackViewer');
+            
+            // Send message to iframe to highlight this comment
+            viewer.contentWindow.postMessage({
+                type: 'highlightComment',
+                commentId: comment.id
+            }, '*');
+            
+            renderFeedbackSidebar();
+            updateFeedbackNav();
+            
+            // Scroll sidebar to active card
+            document.getElementById(`feedbackCard${index}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function navigateFeedback(direction) {
+            const newIndex = currentFeedbackIndex + direction;
+            if (newIndex >= 0 && newIndex < feedbackComments.length) {
+                goToFeedback(newIndex);
+            }
+        }
+
+        function updateFeedbackNav() {
+            document.getElementById('feedbackNavPosition').textContent = 
+                `${currentFeedbackIndex + 1} of ${feedbackComments.length}`;
+            document.getElementById('prevFeedbackBtn').disabled = currentFeedbackIndex === 0;
+            document.getElementById('nextFeedbackBtn').disabled = currentFeedbackIndex === feedbackComments.length - 1;
+        }
+
+        async function toggleResolveInModal(commentId, resolved) {
+            try {
+                await fetch(`/api/mockups/${currentMockupId}/comments/${commentId}/resolve`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ resolved })
+                });
+                // Refresh comments
+                const res = await fetch(`/api/mockups/${currentMockupId}/comments`);
+                const data = await res.json();
+                if (data.success) {
+                    feedbackComments = data.comments;
+                    renderFeedbackSidebar();
+                    updateFeedbackNav();
+                    document.getElementById('feedbackCount').textContent = feedbackComments.filter(c => !c.resolved).length;
+                }
+            } catch (e) { console.error('Error:', e); }
+        }
+
+        async function deleteFeedbackInModal(commentId) {
+            if (!confirm('Delete this comment?')) return;
+            try {
+                await fetch(`/api/mockups/${currentMockupId}/comments/${commentId}`, { method: 'DELETE' });
+                // Refresh comments
+                const res = await fetch(`/api/mockups/${currentMockupId}/comments`);
+                const data = await res.json();
+                if (data.success) {
+                    feedbackComments = data.comments;
+                    if (currentFeedbackIndex >= feedbackComments.length) {
+                        currentFeedbackIndex = Math.max(0, feedbackComments.length - 1);
+                    }
+                    renderFeedbackSidebar();
+                    updateFeedbackNav();
+                    document.getElementById('feedbackCount').textContent = feedbackComments.filter(c => !c.resolved).length;
+                    
+                    // Update viewer
+                    if (feedbackComments.length > 0) {
+                        goToFeedback(currentFeedbackIndex);
+                    }
+                }
+            } catch (e) { console.error('Error:', e); }
+        }
+
+        // ========== VERSION HISTORY ==========
+        async function loadVersions(mockupId) {
+            if (!mockupId) return;
+            try {
+                const res = await fetch(`/api/mockups/${mockupId}/versions`);
+                const data = await res.json();
+                if (data.success && data.versions.length > 0) {
+                    document.getElementById('versionSection').style.display = 'block';
+                    document.getElementById('versionList').innerHTML = data.versions.map(v => `
+                        <div class="version-item">
+                            <span>v${v.versionNumber} - ${new Date(v.createdAt).toLocaleDateString()}</span>
+                            <span class="version-link" onclick="viewVersion('${v.id}')">View</span>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) { console.error('Error loading versions:', e); }
+        }
+
+        function viewVersion(versionId) {
+            window.open(`/api/mockups/${currentMockupId}/versions/${versionId}`, '_blank');
+        }
+
+        // Auto-load from URL
+        window.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id');
+            if (id) loadMockup(id);
+        });
+    </script>
+</body>
+</html>
