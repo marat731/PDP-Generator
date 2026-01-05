@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Walmart Mockup Generator - Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --walmart-blue: #0071dc;
+            --walmart-dark-blue: #004f9a;
+            --walmart-yellow: #ffc220;
+            --text-primary: #2e2f32;
+            --text-muted: #74767c;
+            --border-color: #e6e6e6;
+            --bg-gray: #f2f2f2;
+            --white: #fff;
+        }
+        body {
+            font-family: Bogle, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background: var(--bg-gray);
+            color: var(--text-primary);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .header {
+            background: var(--walmart-dark-blue);
+            color: white;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header h1 {
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .spark-icon {
+            width: 28px;
+            height: 28px;
+            background: var(--walmart-yellow);
+            border-radius: 50%;
+        }
+
+        .dashboard {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+        .dashboard-title {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary {
+            background: var(--walmart-blue);
+            color: white;
+        }
+        .btn-primary:hover {
+            background: var(--walmart-dark-blue);
+        }
+
+        .mockup-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+        }
+        .mockup-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .mockup-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+        .mockup-card-new {
+            border: 2px dashed var(--border-color);
+            background: var(--bg-gray);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 320px;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+        .mockup-card-new:hover {
+            border-color: var(--walmart-blue);
+            background: #f0f7ff;
+        }
+        .new-icon { font-size: 48px; margin-bottom: 12px; }
+        .new-text { font-size: 16px; font-weight: 600; color: var(--walmart-blue); }
+
+        .mockup-thumbnail {
+            width: 100%;
+            aspect-ratio: 1;
+            background: var(--bg-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            cursor: pointer;
+            position: relative;
+        }
+        .mockup-thumbnail img {
+            max-width: 80%;
+            max-height: 80%;
+            object-fit: contain;
+        }
+        .mockup-thumbnail-placeholder {
+            font-size: 64px;
+            color: var(--border-color);
+        }
+        .feedback-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #e91e63;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .mockup-card-info {
+            padding: 16px;
+        }
+        .mockup-card-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mockup-card-brand {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+        .mockup-card-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+        .mockup-card-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .card-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: white;
+            font-size: 12px;
+            cursor: pointer;
+            font-family: inherit;
+            text-decoration: none;
+            text-align: center;
+        }
+        .card-btn:hover { background: var(--bg-gray); }
+        .card-btn-primary {
+            background: var(--walmart-blue);
+            color: white;
+            border-color: var(--walmart-blue);
+        }
+        .card-btn-primary:hover { background: var(--walmart-dark-blue); }
+        .card-btn-danger:hover { background: #fee; border-color: #fcc; color: #c00; }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-muted);
+        }
+        .empty-state-icon { font-size: 80px; margin-bottom: 20px; }
+        .empty-state-title { font-size: 20px; font-weight: 600; margin-bottom: 8px; color: var(--text-primary); }
+        .empty-state-text { margin-bottom: 24px; }
+
+        .password-badge {
+            display: inline-block;
+            background: #f5a623;
+            color: white;
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-left: 8px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--text-primary);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+        .toast.show { display: block; }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .user-email {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+        .logout-btn {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.2s;
+        }
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.25);
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>
+            <div class="spark-icon"></div>
+            Walmart PDP Mockup Generator
+        </h1>
+        <div class="user-info">
+            <span class="user-email" id="userEmail"></span>
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+    </header>
+
+    <div class="dashboard">
+        <div class="dashboard-header">
+            <h2 class="dashboard-title">Your Mockups</h2>
+            <a href="/editor" class="btn btn-primary">
+                <span>➕</span> Create New Mockup
+            </a>
+        </div>
+
+        <div class="mockup-grid" id="mockupGrid">
+            <!-- Mockups will be loaded here -->
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Link copied!</div>
+
+    <script>
+        async function loadMockups() {
+            try {
+                const response = await fetch('/api/mockups');
+                const result = await response.json();
+                
+                if (result.success) {
+                    renderMockups(result.mockups || []);
+                }
+            } catch (e) {
+                console.error('Error loading mockups:', e);
+            }
+        }
+
+        function renderMockups(mockups) {
+            const grid = document.getElementById('mockupGrid');
+            
+            if (mockups.length === 0) {
+                grid.innerHTML = `
+                    <a href="/editor" class="mockup-card mockup-card-new">
+                        <div class="new-icon">➕</div>
+                        <div class="new-text">Create Your First Mockup</div>
+                    </a>
+                `;
+                return;
+            }
+
+            let html = `
+                <a href="/editor" class="mockup-card mockup-card-new">
+                    <div class="new-icon">➕</div>
+                    <div class="new-text">Create New Mockup</div>
+                </a>
+            `;
+            
+            mockups.forEach(m => {
+                const data = m.data || {};
+                const thumb = data.images && data.images[0] ? data.images[0] : '';
+                const title = data.title || 'Untitled Mockup';
+                const brand = data.brand || '';
+                const views = m.views || 0;
+                const date = m.updated_at ? new Date(m.updated_at).toLocaleDateString() : '';
+                const hasPassword = m.hasPassword;
+                const feedbackCount = m.unresolvedComments || 0;
+                
+                html += `
+                <div class="mockup-card">
+                    <div class="mockup-thumbnail" onclick="window.location.href='/editor?id=${m.id}'">
+                        ${thumb ? `<img src="${thumb}" alt="${title}">` : '<div class="mockup-thumbnail-placeholder">📦</div>'}
+                        ${feedbackCount > 0 ? `<div class="feedback-badge">${feedbackCount} 💬</div>` : ''}
+                    </div>
+                    <div class="mockup-card-info">
+                        <div class="mockup-card-title">
+                            ${title}
+                            ${hasPassword ? '<span class="password-badge">🔒</span>' : ''}
+                        </div>
+                        <div class="mockup-card-brand">${brand}</div>
+                        <div class="mockup-card-meta">
+                            <span>👁️ ${views} views</span>
+                            <span>📅 ${date}</span>
+                            ${feedbackCount > 0 ? `<span style="color:#e91e63;">💬 ${feedbackCount} new</span>` : ''}
+                        </div>
+                        <div class="mockup-card-actions">
+                            <a href="/editor?id=${m.id}" class="card-btn card-btn-primary">Edit</a>
+                            <button class="card-btn" onclick="copyShareLink('${m.id}')">Share</button>
+                            <button class="card-btn card-btn-danger" onclick="deleteMockup('${m.id}')">🗑️</button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            
+            grid.innerHTML = html;
+        }
+
+        function copyShareLink(id) {
+            const url = `${window.location.origin}/mockup/${id}`;
+            navigator.clipboard.writeText(url);
+            showToast('Share link copied!');
+        }
+
+        async function deleteMockup(id) {
+            if (!confirm('Are you sure you want to delete this mockup?')) return;
+            
+            try {
+                await fetch(`/api/mockups/${id}`, { method: 'DELETE' });
+                loadMockups();
+                showToast('Mockup deleted');
+            } catch (e) {
+                console.error('Error deleting:', e);
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+        
+        async function loadUserInfo() {
+            try {
+                const res = await fetch('/api/auth/me');
+                const data = await res.json();
+                if (data.success && data.user) {
+                    document.getElementById('userEmail').textContent = data.user.email;
+                }
+            } catch (e) {
+                console.error('Error loading user:', e);
+            }
+        }
+        
+        async function handleLogout() {
+            try {
+                await fetch('/api/auth/logout', { method: 'POST' });
+                window.location.href = '/login';
+            } catch (e) {
+                console.error('Logout error:', e);
+                window.location.href = '/login';
+            }
+        }
+
+        // Load on page load
+        loadMockups();
+        loadUserInfo();
+    </script>
+</body>
+</html>
