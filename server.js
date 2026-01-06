@@ -1049,6 +1049,89 @@ function parseGeneratedContent(text) {
     }
 }
 
+// Test image generation capabilities
+app.get('/api/ai/test-image', authenticateAPI, async (req, res) => {
+    console.log('Testing image generation capabilities...');
+    
+    if (!GEMINI_API_KEY) {
+        return res.json({ success: false, error: 'GEMINI_API_KEY not set' });
+    }
+    
+    const results = {
+        imagen4: null,
+        geminiImageGen: null,
+        gemini2Flash: null
+    };
+    
+    // Test Imagen 4
+    try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${GEMINI_API_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                instances: [{
+                    prompt: "A red apple on a white background"
+                }],
+                parameters: {
+                    sampleCount: 1
+                }
+            })
+        });
+        const data = await response.json();
+        results.imagen4 = { status: response.status, ok: response.ok, error: data.error?.message || null };
+    } catch (e) {
+        results.imagen4 = { error: e.message };
+    }
+    
+    // Test Gemini image generation model
+    try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${GEMINI_API_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [{ text: "Generate an image of a red apple on white background" }]
+                }],
+                generationConfig: {
+                    responseModalities: ["image", "text"]
+                }
+            })
+        });
+        const data = await response.json();
+        results.geminiImageGen = { 
+            status: response.status, 
+            ok: response.ok, 
+            error: data.error?.message || null,
+            hasImage: !!data.candidates?.[0]?.content?.parts?.find(p => p.inlineData)
+        };
+    } catch (e) {
+        results.geminiImageGen = { error: e.message };
+    }
+    
+    // Test standard Gemini 2.0 Flash with image output
+    try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [{ text: "Describe a red apple" }]
+                }]
+            })
+        });
+        const data = await response.json();
+        results.gemini2Flash = { 
+            status: response.status, 
+            ok: response.ok, 
+            error: data.error?.message || null
+        };
+    } catch (e) {
+        results.gemini2Flash = { error: e.message };
+    }
+    
+    res.json({ success: true, results });
+});
+
 // Image generation endpoint
 app.post('/api/ai/generate-image', authenticateAPI, async (req, res) => {
     console.log('Image generation request received');
@@ -1081,40 +1164,44 @@ app.post('/api/ai/generate-image', authenticateAPI, async (req, res) => {
         console.log('Image mime type:', mimeType);
         console.log('Prompt length:', prompt.length);
         
-        // Use Imagen 4 for image generation
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${GEMINI_API_KEY}`, {
+        // Use Gemini 2.0 Flash with image generation capability
+        // First, have it analyze the reference image and generate a new one based on the prompt
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                instances: [{
-                    prompt: `Using this product as reference, ${prompt}`,
-                    referenceImages: [{
-                        referenceImage: {
-                            bytesBase64Encoded: base64Data
+                contents: [{
+                    parts: [
+                        {
+                            inlineData: {
+                                mimeType: mimeType,
+                                data: base64Data
+                            }
                         },
-                        referenceType: "REFERENCE_TYPE_SUBJECT"
-                    }]
+                        {
+                            text: `Look at this product image carefully. Now generate a NEW, DIFFERENT image of this same product with the following specifications: ${prompt}
+
+Important: Generate a photorealistic product image. The product should look exactly like the reference but in a new setting/angle as described.`
+                        }
+                    ]
                 }],
-                parameters: {
-                    sampleCount: 1,
-                    aspectRatio: "1:1",
-                    outputOptions: {
-                        mimeType: "image/jpeg"
-                    }
+                generationConfig: {
+                    responseModalities: ["image", "text"]
                 }
             })
         });
 
-        console.log('Imagen response status:', response.status);
+        console.log('Gemini response status:', response.status);
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('Imagen API error:', errorText);
+            console.error('Gemini image gen error:', errorText);
             
-            // Try fallback to Gemini native image generation
-            console.log('Trying fallback to Gemini image generation...');
+            // Try Imagen 4 without reference image (just prompt-based)
+            console.log('Trying Imagen 4 without reference...');
             
-            const fallbackResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${GEMINI_API_KEY}`, {
+            // First, use Gemini to describe the product from the reference image
+            const describeResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -1127,48 +1214,77 @@ app.post('/api/ai/generate-image', authenticateAPI, async (req, res) => {
                                 }
                             },
                             {
-                                text: `Generate a new product image based on this reference product. ${prompt} Return only the generated image.`
+                                text: "Describe this product in detail for image generation. Include: product type, color, shape, size, materials, brand elements, and any distinctive features. Be very specific and detailed. Output only the description, nothing else."
                             }
                         ]
+                    }]
+                })
+            });
+            
+            if (!describeResponse.ok) {
+                return res.status(500).json({ success: false, error: 'Failed to analyze reference image' });
+            }
+            
+            const describeData = await describeResponse.json();
+            const productDescription = describeData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            
+            console.log('Product description:', productDescription.substring(0, 200));
+            
+            // Now use Imagen 4 with the detailed description
+            const imagenResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${GEMINI_API_KEY}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    instances: [{
+                        prompt: `Professional product photography: ${productDescription}. ${prompt}. High quality, commercial photography style, 8k resolution.`
                     }],
-                    generationConfig: {
-                        responseModalities: ["image", "text"],
-                        responseMimeType: "image/jpeg"
+                    parameters: {
+                        sampleCount: 1,
+                        aspectRatio: "1:1",
+                        personGeneration: "dont_allow"
                     }
                 })
             });
             
-            if (!fallbackResponse.ok) {
-                const fallbackError = await fallbackResponse.text();
-                console.error('Fallback also failed:', fallbackError);
-                return res.status(500).json({ success: false, error: 'Image generation failed. Please try again.' });
+            console.log('Imagen response status:', imagenResponse.status);
+            
+            if (!imagenResponse.ok) {
+                const imagenError = await imagenResponse.text();
+                console.error('Imagen error:', imagenError);
+                return res.status(500).json({ success: false, error: 'Image generation failed. The AI models may not support this type of generation yet.' });
             }
             
-            const fallbackData = await fallbackResponse.json();
-            console.log('Fallback response:', JSON.stringify(fallbackData).substring(0, 500));
+            const imagenData = await imagenResponse.json();
             
-            // Extract image from fallback response
-            const imagePart = fallbackData.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
-            if (imagePart?.inlineData) {
-                const imageBase64 = `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}`;
+            if (imagenData.predictions?.[0]?.bytesBase64Encoded) {
+                const imageBase64 = `data:image/png;base64,${imagenData.predictions[0].bytesBase64Encoded}`;
                 return res.json({ success: true, image: imageBase64 });
             }
             
-            return res.status(500).json({ success: false, error: 'No image generated' });
+            return res.status(500).json({ success: false, error: 'No image generated from Imagen' });
         }
 
         const data = await response.json();
-        console.log('Imagen response received');
+        console.log('Gemini response received, checking for image...');
         
-        // Extract image from Imagen response
-        const predictions = data.predictions;
-        if (predictions && predictions.length > 0 && predictions[0].bytesBase64Encoded) {
-            const imageBase64 = `data:image/jpeg;base64,${predictions[0].bytesBase64Encoded}`;
+        // Look for image in response parts
+        const parts = data.candidates?.[0]?.content?.parts || [];
+        const imagePart = parts.find(p => p.inlineData);
+        
+        if (imagePart?.inlineData) {
+            console.log('Image found in response');
+            const imageBase64 = `data:${imagePart.inlineData.mimeType || 'image/png'};base64,${imagePart.inlineData.data}`;
             return res.json({ success: true, image: imageBase64 });
         }
         
-        console.error('No image in response:', JSON.stringify(data).substring(0, 500));
-        return res.status(500).json({ success: false, error: 'No image generated' });
+        // Check if there's text explaining why no image
+        const textPart = parts.find(p => p.text);
+        if (textPart) {
+            console.log('Response text:', textPart.text.substring(0, 200));
+        }
+        
+        console.error('No image in response. Parts:', parts.map(p => Object.keys(p)));
+        return res.status(500).json({ success: false, error: 'No image was generated. Try a different prompt.' });
         
     } catch (error) {
         console.error('Image generation error:', error.message);
