@@ -769,6 +769,31 @@ app.delete('/api/mockups/:id/versions/:versionNum', authenticateAPI, async (req,
 
 // ============ AI GENERATION API ============
 
+// List available models
+app.get('/api/ai/models', authenticateAPI, async (req, res) => {
+    if (!GEMINI_API_KEY) {
+        return res.json({ success: false, error: 'GEMINI_API_KEY not set' });
+    }
+    
+    try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`);
+        const data = await response.json();
+        
+        if (response.ok) {
+            const models = data.models?.map(m => ({
+                name: m.name,
+                displayName: m.displayName,
+                supportedMethods: m.supportedGenerationMethods
+            })) || [];
+            return res.json({ success: true, models });
+        } else {
+            return res.json({ success: false, error: data.error?.message, details: data });
+        }
+    } catch (error) {
+        return res.json({ success: false, error: error.message });
+    }
+});
+
 // Test endpoint to verify Gemini API connection
 app.get('/api/ai/test', authenticateAPI, async (req, res) => {
     console.log('Testing Gemini API connection...');
