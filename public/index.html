@@ -254,6 +254,52 @@
         }
         .ai-panel-title { font-size: 16px; font-weight: 700; }
         .ai-panel-close { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
+        
+        /* AI Tabs */
+        .ai-tabs {
+            display: flex;
+            border-bottom: 2px solid var(--border-color);
+            background: #f8f9ff;
+        }
+        .ai-tab {
+            flex: 1;
+            padding: 14px 20px;
+            border: none;
+            background: none;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+        .ai-tab:hover {
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+        .ai-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: white;
+        }
+        .ai-tab-content {
+            display: none;
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .ai-tab-content.active {
+            display: block;
+        }
+        .ai-panel-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
         .ai-panel-content { flex: 1; overflow-y: auto; padding: 20px; }
         .ai-section {
             margin-bottom: 20px;
@@ -391,6 +437,121 @@
             margin-top: 12px;
         }
         .ai-apply-all-btn:hover { background: #43a047; }
+        
+        /* AI Image Generation */
+        .ai-image-upload-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fafafa;
+            margin-bottom: 16px;
+        }
+        .ai-image-upload-zone:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+        .ai-image-upload-zone.has-image {
+            border-style: solid;
+            border-color: #4caf50;
+            background: #f1f8e9;
+        }
+        .ai-image-upload-icon {
+            font-size: 36px;
+            margin-bottom: 8px;
+        }
+        .ai-image-upload-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        .ai-image-upload-hint {
+            font-size: 11px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+        .ai-reference-preview {
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .ai-reference-change {
+            font-size: 12px;
+            color: #667eea;
+            cursor: pointer;
+        }
+        .ai-reference-change:hover {
+            text-decoration: underline;
+        }
+        .ai-preset-select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+        .ai-preset-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .ai-image-result {
+            background: #f8f9ff;
+            border: 1px solid #e0e4ff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 20px;
+        }
+        .ai-image-result img {
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+        .ai-image-result-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .ai-image-add-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .ai-position-select {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 13px;
+        }
+        .ai-image-btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .ai-image-btn-add {
+            background: #4caf50;
+            color: white;
+        }
+        .ai-image-btn-add:hover { background: #43a047; }
+        .ai-image-btn-retry {
+            background: var(--bg-gray);
+            color: var(--text-primary);
+            flex: 1;
+        }
+        .ai-image-btn-retry:hover { background: #e0e0e0; }
 
         /* Version History */
         .version-section {
@@ -1470,10 +1631,19 @@
             <span class="ai-panel-title">✨ AI Assistant</span>
             <button class="ai-panel-close" onclick="toggleAIPanel()">×</button>
         </div>
-        <div class="ai-panel-content">
-            <div class="ai-section">
-                <div class="ai-section-title">Describe Your Product</div>
-                <textarea class="ai-textarea" id="aiProductInput" placeholder="Tell me about your product. For example:
+        
+        <!-- Tabs -->
+        <div class="ai-tabs">
+            <button class="ai-tab active" onclick="switchAITab('copy')" id="aiTabCopy">📝 Copy</button>
+            <button class="ai-tab" onclick="switchAITab('images')" id="aiTabImages">🖼️ Images</button>
+        </div>
+        
+        <div class="ai-panel-body">
+            <!-- Copy Tab Content -->
+            <div class="ai-tab-content active" id="aiTabContentCopy">
+                <div class="ai-section">
+                    <div class="ai-section-title">Describe Your Product</div>
+                    <textarea class="ai-textarea" id="aiProductInput" placeholder="Tell me about your product. For example:
 
 • What is it? (e.g., organic honey, wireless earbuds)
 • Key features and benefits
@@ -1482,24 +1652,103 @@
 • Price range if known
 
 The more detail you provide, the better the results!"></textarea>
-                <div class="ai-hint">Tip: Include product type, key benefits, target audience, and any unique selling points.</div>
-            </div>
-            
-            <button class="ai-generate-btn" id="aiGenerateBtn" onclick="generateAIContent()">
-                ✨ Generate Walmart Listing
-            </button>
-            
-            <div class="ai-loading" id="aiLoading" style="display:none;">
-                <div class="ai-spinner"></div>
-                <div>Generating optimized content...</div>
-            </div>
-            
-            <div class="ai-results" id="aiResults" style="display:none;">
-                <div class="ai-section-title">Generated Content</div>
-                <div id="aiResultsList"></div>
-                <button class="ai-apply-all-btn" onclick="applyAllAIContent()">
-                    ✓ Apply All to Mockup
+                    <div class="ai-hint">Tip: Include product type, key benefits, target audience, and any unique selling points.</div>
+                </div>
+                
+                <button class="ai-generate-btn" id="aiGenerateBtn" onclick="generateAIContent()">
+                    ✨ Generate Walmart Listing
                 </button>
+                
+                <div class="ai-loading" id="aiLoading" style="display:none;">
+                    <div class="ai-spinner"></div>
+                    <div>Generating optimized content...</div>
+                </div>
+                
+                <div class="ai-results" id="aiResults" style="display:none;">
+                    <div class="ai-section-title">Generated Content</div>
+                    <div id="aiResultsList"></div>
+                    <button class="ai-apply-all-btn" onclick="applyAllAIContent()">
+                        ✓ Apply All to Mockup
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Images Tab Content -->
+            <div class="ai-tab-content" id="aiTabContentImages">
+                <div class="ai-section">
+                    <div class="ai-section-title">Reference Product Image</div>
+                    <div class="ai-image-upload-zone" id="aiImageUploadZone" onclick="document.getElementById('aiReferenceImageInput').click()">
+                        <div id="aiImageUploadContent">
+                            <div class="ai-image-upload-icon">📷</div>
+                            <div class="ai-image-upload-text">Click to upload product image</div>
+                            <div class="ai-image-upload-hint">
+                                Best practices:<br>
+                                • High resolution (3000×3000px ideal)<br>
+                                • Product on white background or transparent PNG<br>
+                                • Straight-on angle, well-lit
+                            </div>
+                        </div>
+                    </div>
+                    <input type="file" id="aiReferenceImageInput" accept="image/*" style="display:none;" onchange="handleReferenceImageUpload(event)">
+                </div>
+                
+                <div class="ai-section">
+                    <div class="ai-section-title">Image Type</div>
+                    <select class="ai-preset-select" id="aiImagePreset" onchange="updateImagePrompt()">
+                        <option value="">-- Select a preset or write custom --</option>
+                        <option value="lifestyle">Lifestyle Shot - Product in natural use</option>
+                        <option value="hero">Hero/Beauty Shot - Dramatic angles & lighting</option>
+                        <option value="scale">Scale Shot - Product next to common objects</option>
+                        <option value="context">Context Shot - Product in setting (kitchen, bathroom, etc.)</option>
+                        <option value="ingredients">Ingredients/Features - Visual callouts</option>
+                        <option value="seasonal">Seasonal/Holiday - Festive themed setting</option>
+                        <option value="custom">Custom - Write your own prompt</option>
+                    </select>
+                </div>
+                
+                <div class="ai-section">
+                    <div class="ai-section-title">Prompt</div>
+                    <textarea class="ai-textarea" id="aiImagePrompt" placeholder="Select a preset above or write your own prompt describing the image you want to generate..."></textarea>
+                    <div class="ai-hint">You can edit the preset prompts or write something completely custom.</div>
+                </div>
+                
+                <button class="ai-generate-btn" id="aiGenerateImageBtn" onclick="generateAIImage()">
+                    🖼️ Generate Image
+                </button>
+                
+                <div class="ai-loading" id="aiImageLoading" style="display:none;">
+                    <div class="ai-spinner"></div>
+                    <div>Generating image... This may take a moment.</div>
+                </div>
+                
+                <div class="ai-image-result" id="aiImageResult" style="display:none;">
+                    <img id="aiGeneratedImage" src="" alt="Generated image">
+                    <div class="ai-image-result-actions">
+                        <div class="ai-image-add-row">
+                            <select class="ai-position-select" id="aiImagePosition">
+                                <option value="1">Position 1 (Main)</option>
+                                <option value="2">Position 2</option>
+                                <option value="3">Position 3</option>
+                                <option value="4">Position 4</option>
+                                <option value="5">Position 5</option>
+                                <option value="6">Position 6</option>
+                                <option value="7">Position 7</option>
+                                <option value="append">Add to End</option>
+                            </select>
+                            <button class="ai-image-btn ai-image-btn-add" onclick="addGeneratedImageToMockup()">
+                                ✓ Add to Mockup
+                            </button>
+                        </div>
+                        <div class="ai-image-add-row">
+                            <button class="ai-image-btn ai-image-btn-retry" onclick="generateAIImage()">
+                                ↻ Retry
+                            </button>
+                            <button class="ai-image-btn ai-image-btn-retry" onclick="editAndRetryImage()">
+                                ✏️ Edit Prompt & Retry
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -2689,6 +2938,194 @@ The more detail you provide, the better the results!"></textarea>
                 btn.disabled = false;
                 btn.textContent = '↻ Regen';
             }
+        }
+
+        // ========== AI IMAGE GENERATION ==========
+        let referenceImageBase64 = null;
+        let generatedImageBase64 = null;
+        
+        const imagePresets = {
+            lifestyle: {
+                name: 'Lifestyle Shot',
+                prompt: 'Create a lifestyle photograph showing this product being used naturally in a real-world setting. The product should be the clear focus but shown in context of everyday use. Warm, inviting lighting. Professional product photography style suitable for e-commerce.'
+            },
+            hero: {
+                name: 'Hero/Beauty Shot',
+                prompt: 'Create a dramatic hero shot of this product with professional studio lighting. Use interesting angles and dramatic shadows to highlight the product\'s premium quality. Clean background with subtle gradient. High-end advertising photography style.'
+            },
+            scale: {
+                name: 'Scale Shot',
+                prompt: 'Create an image showing this product next to common household objects for size reference (like a hand, coffee mug, or smartphone). The scale comparison should be natural and help customers understand the actual size. Clean, simple composition.'
+            },
+            context: {
+                name: 'Context Shot',
+                prompt: 'Create an image showing this product displayed in its natural environment (kitchen counter, bathroom shelf, living room, office desk, etc. - choose what\'s most appropriate). The setting should feel aspirational but realistic. Styled product photography.'
+            },
+            ingredients: {
+                name: 'Ingredients/Features',
+                prompt: 'Create an image that visually highlights the key ingredients or features of this product. Show raw ingredients or component parts arranged artistically around or near the product. Fresh, clean, appetizing presentation.'
+            },
+            seasonal: {
+                name: 'Seasonal/Holiday',
+                prompt: 'Create a festive, seasonal image featuring this product in a holiday or seasonal setting. Include tasteful seasonal decorations and warm lighting. The product should remain the hero but feel gift-worthy and celebratory.'
+            }
+        };
+        
+        function switchAITab(tab) {
+            // Update tab buttons
+            document.querySelectorAll('.ai-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(tab === 'copy' ? 'aiTabCopy' : 'aiTabImages').classList.add('active');
+            
+            // Update tab content
+            document.querySelectorAll('.ai-tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(tab === 'copy' ? 'aiTabContentCopy' : 'aiTabContentImages').classList.add('active');
+        }
+        
+        function handleReferenceImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                referenceImageBase64 = e.target.result;
+                
+                // Update the upload zone to show preview
+                const zone = document.getElementById('aiImageUploadZone');
+                const content = document.getElementById('aiImageUploadContent');
+                
+                zone.classList.add('has-image');
+                content.innerHTML = `
+                    <img src="${referenceImageBase64}" class="ai-reference-preview" alt="Reference image">
+                    <div class="ai-reference-change">Click to change image</div>
+                `;
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function updateImagePrompt() {
+            const preset = document.getElementById('aiImagePreset').value;
+            const promptTextarea = document.getElementById('aiImagePrompt');
+            
+            if (preset && imagePresets[preset]) {
+                promptTextarea.value = imagePresets[preset].prompt;
+            } else if (preset === 'custom') {
+                promptTextarea.value = '';
+                promptTextarea.placeholder = 'Describe the image you want to generate. Be specific about:\n• Setting/environment\n• Lighting style\n• Mood/atmosphere\n• Any props or additional elements';
+                promptTextarea.focus();
+            } else {
+                promptTextarea.value = '';
+            }
+        }
+        
+        async function generateAIImage() {
+            if (!referenceImageBase64) {
+                alert('Please upload a reference product image first.');
+                return;
+            }
+            
+            const prompt = document.getElementById('aiImagePrompt').value.trim();
+            if (!prompt) {
+                alert('Please select a preset or write a custom prompt.');
+                return;
+            }
+            
+            const btn = document.getElementById('aiGenerateImageBtn');
+            const loading = document.getElementById('aiImageLoading');
+            const result = document.getElementById('aiImageResult');
+            
+            btn.disabled = true;
+            btn.textContent = 'Generating...';
+            loading.style.display = 'block';
+            result.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/ai/generate-image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        referenceImage: referenceImageBase64,
+                        prompt: prompt
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.image) {
+                    generatedImageBase64 = data.image;
+                    document.getElementById('aiGeneratedImage').src = data.image;
+                    result.style.display = 'block';
+                } else {
+                    alert('Failed to generate image: ' + (data.error || 'Unknown error'));
+                }
+            } catch (e) {
+                console.error('Image generation error:', e);
+                alert('Failed to generate image. Please try again.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🖼️ Generate Image';
+                loading.style.display = 'none';
+            }
+        }
+        
+        function addGeneratedImageToMockup() {
+            if (!generatedImageBase64) return;
+            
+            const position = document.getElementById('aiImagePosition').value;
+            const grid = document.getElementById('imagePreviewGrid');
+            const existingImages = grid.querySelectorAll('.image-preview-item');
+            
+            // Create the new image element HTML
+            const newImageHtml = `
+                <div class="image-preview-item" draggable="true">
+                    <img src="${generatedImageBase64}" alt="Product">
+                    <button class="image-remove" onclick="removeImage(this)">×</button>
+                </div>
+            `;
+            
+            if (position === 'append') {
+                // Add to end
+                grid.insertAdjacentHTML('beforeend', newImageHtml);
+            } else {
+                const pos = parseInt(position) - 1;
+                if (pos === 0 && existingImages.length === 0) {
+                    // First image
+                    grid.insertAdjacentHTML('beforeend', newImageHtml);
+                } else if (pos < existingImages.length) {
+                    // Insert at specific position
+                    existingImages[pos].insertAdjacentHTML('beforebegin', newImageHtml);
+                } else {
+                    // Position beyond current count, append
+                    grid.insertAdjacentHTML('beforeend', newImageHtml);
+                }
+            }
+            
+            // Re-init drag handlers
+            initImageDragAndDrop();
+            updatePreview();
+            
+            // Visual feedback
+            alert('Image added to mockup! You can reorder it in the Images section.');
+            
+            // Reset for next generation
+            generatedImageBase64 = null;
+            document.getElementById('aiImageResult').style.display = 'none';
+        }
+        
+        function editAndRetryImage() {
+            document.getElementById('aiImagePrompt').focus();
+            document.getElementById('aiImagePrompt').select();
+        }
+        
+        function initImageDragAndDrop() {
+            const grid = document.getElementById('imagePreviewGrid');
+            const items = grid.querySelectorAll('.image-preview-item');
+            
+            items.forEach(item => {
+                item.addEventListener('dragstart', handleDragStart);
+                item.addEventListener('dragover', handleDragOver);
+                item.addEventListener('drop', handleDrop);
+                item.addEventListener('dragend', handleDragEnd);
+            });
         }
 
         // Auto-load from URL
