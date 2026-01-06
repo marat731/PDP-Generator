@@ -71,9 +71,9 @@
 
         /* Main Content */
         .main-content { max-width: 1400px; margin: 0 auto; padding: 16px 24px; position: relative; }
-        .page-layout { display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: start; }
+        .page-layout { display: grid; grid-template-columns: 1fr 200px; gap: 24px; align-items: start; }
         .left-content { min-width: 0; position: relative; }
-        .product-top-section { display: grid; grid-template-columns: 550px 1fr; gap: 24px; margin-bottom: 32px; position: relative; }
+        .product-top-section { display: grid; grid-template-columns: 540px 1fr; gap: 24px; margin-bottom: 32px; position: relative; }
         .image-gallery { display: flex; gap: 12px; align-self: start; }
         .thumbnail-strip { display: flex; flex-direction: column; gap: 8px; width: 64px; }
         .thumbnail {
@@ -456,13 +456,12 @@
         body.feedback-mode .page-layout,
         body.review-mode .page-layout,
         body.has-comments .page-layout { 
-            grid-template-columns: 1fr 340px !important; 
+            grid-template-columns: 1fr 200px !important; 
         }
         body.feedback-mode .product-top-section,
         body.review-mode .product-top-section,
         body.has-comments .product-top-section { 
-            grid-template-columns: 550px 1fr !important;
-            width: 836px !important;
+            grid-template-columns: 540px 1fr !important;
         }
         body.feedback-mode .main-image,
         body.review-mode .main-image,
