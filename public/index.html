@@ -3071,40 +3071,27 @@ The more detail you provide, the better the results!"></textarea>
             if (!generatedImageBase64) return;
             
             const position = document.getElementById('aiImagePosition').value;
-            const grid = document.getElementById('imagePreviewGrid');
-            const existingImages = grid.querySelectorAll('.image-preview-item');
-            
-            // Create the new image element HTML
-            const newImageHtml = `
-                <div class="image-preview-item" draggable="true">
-                    <img src="${generatedImageBase64}" alt="Product">
-                    <button class="image-remove" onclick="removeImage(this)">×</button>
-                </div>
-            `;
             
             if (position === 'append') {
-                // Add to end
-                grid.insertAdjacentHTML('beforeend', newImageHtml);
+                // Add to end of array
+                uploadedImages.push(generatedImageBase64);
             } else {
-                const pos = parseInt(position) - 1;
-                if (pos === 0 && existingImages.length === 0) {
-                    // First image
-                    grid.insertAdjacentHTML('beforeend', newImageHtml);
-                } else if (pos < existingImages.length) {
-                    // Insert at specific position
-                    existingImages[pos].insertAdjacentHTML('beforebegin', newImageHtml);
-                } else {
+                const pos = parseInt(position) - 1; // Convert to 0-indexed
+                if (pos >= uploadedImages.length) {
                     // Position beyond current count, append
-                    grid.insertAdjacentHTML('beforeend', newImageHtml);
+                    uploadedImages.push(generatedImageBase64);
+                } else {
+                    // Insert at specific position
+                    uploadedImages.splice(pos, 0, generatedImageBase64);
                 }
             }
             
-            // Re-init drag handlers
-            initImageDragAndDrop();
+            // Re-render the image previews using the existing function
+            updateProductImagePreviews();
             updatePreview();
             
             // Visual feedback
-            alert('Image added to mockup! You can reorder it in the Images section.');
+            alert('Image added to mockup at position ' + (position === 'append' ? uploadedImages.length : position) + '!');
             
             // Reset for next generation
             generatedImageBase64 = null;
@@ -3114,18 +3101,6 @@ The more detail you provide, the better the results!"></textarea>
         function editAndRetryImage() {
             document.getElementById('aiImagePrompt').focus();
             document.getElementById('aiImagePrompt').select();
-        }
-        
-        function initImageDragAndDrop() {
-            const grid = document.getElementById('imagePreviewGrid');
-            const items = grid.querySelectorAll('.image-preview-item');
-            
-            items.forEach(item => {
-                item.addEventListener('dragstart', handleDragStart);
-                item.addEventListener('dragover', handleDragOver);
-                item.addEventListener('drop', handleDrop);
-                item.addEventListener('dragend', handleDragEnd);
-            });
         }
 
         // Auto-load from URL
