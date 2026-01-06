@@ -949,12 +949,40 @@
             overflow: hidden;
             position: relative;
             border: 2px solid var(--border-color);
+            cursor: grab;
+            transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+        }
+        
+        .image-preview-item:hover {
+            border-color: var(--walmart-blue);
+        }
+        
+        .image-preview-item.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+        
+        .image-preview-item.drag-over {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 113, 220, 0.3);
+            border-color: var(--walmart-blue);
+        }
+        
+        .image-preview-item .drag-handle {
+            position: absolute;
+            bottom: 2px;
+            left: 2px;
+            font-size: 8px;
+            color: rgba(255,255,255,0.8);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            pointer-events: none;
         }
 
         .image-preview-item img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            pointer-events: none;
         }
 
         .image-preview-item .remove-btn {
@@ -1850,12 +1878,86 @@ The more detail you provide, the better the results!"></textarea>
         }
 
         function updateProductImagePreviews() {
-            document.getElementById('imagePreviewGrid').innerHTML = uploadedImages.map((img, i) => `
-                <div class="image-preview-item">
+            const grid = document.getElementById('imagePreviewGrid');
+            grid.innerHTML = uploadedImages.map((img, i) => `
+                <div class="image-preview-item" draggable="true" data-index="${i}">
                     <img src="${img}">
-                    <button class="remove-btn" onclick="removeProductImage(${i})">✕</button>
+                    <span class="drag-handle">⋮⋮</span>
+                    <button class="remove-btn" onclick="event.stopPropagation(); removeProductImage(${i})">✕</button>
                 </div>
             `).join('');
+            
+            // Add drag event listeners
+            initImageDragListeners();
+        }
+        
+        let draggedImageIndex = null;
+        
+        function initImageDragListeners() {
+            const items = document.querySelectorAll('#imagePreviewGrid .image-preview-item');
+            
+            items.forEach(item => {
+                item.addEventListener('dragstart', handleImageDragStart);
+                item.addEventListener('dragend', handleImageDragEnd);
+                item.addEventListener('dragover', handleImageDragOver);
+                item.addEventListener('dragleave', handleImageDragLeave);
+                item.addEventListener('drop', handleImageDrop);
+            });
+        }
+        
+        function handleImageDragStart(e) {
+            draggedImageIndex = parseInt(this.dataset.index);
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', draggedImageIndex);
+        }
+        
+        function handleImageDragEnd(e) {
+            this.classList.remove('dragging');
+            document.querySelectorAll('.image-preview-item').forEach(item => {
+                item.classList.remove('drag-over');
+            });
+        }
+        
+        function handleImageDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            
+            const targetIndex = parseInt(this.dataset.index);
+            if (targetIndex !== draggedImageIndex) {
+                this.classList.add('drag-over');
+            }
+        }
+        
+        function handleImageDragLeave(e) {
+            this.classList.remove('drag-over');
+        }
+        
+        function handleImageDrop(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+            
+            const fromIndex = draggedImageIndex;
+            const toIndex = parseInt(this.dataset.index);
+            
+            if (fromIndex === toIndex) return;
+            
+            // Reorder the array
+            const [movedImage] = uploadedImages.splice(fromIndex, 1);
+            uploadedImages.splice(toIndex, 0, movedImage);
+            
+            // Update current image index if needed
+            if (currentImageIndex === fromIndex) {
+                currentImageIndex = toIndex;
+            } else if (fromIndex < currentImageIndex && toIndex >= currentImageIndex) {
+                currentImageIndex--;
+            } else if (fromIndex > currentImageIndex && toIndex <= currentImageIndex) {
+                currentImageIndex++;
+            }
+            
+            // Re-render
+            updateProductImagePreviews();
+            updatePreview();
         }
 
         function removeProductImage(index) {
