@@ -35,6 +35,20 @@ function hashPassword(password) {
     return crypto.createHash('sha256').update(password).digest('hex');
 }
 
+// Helper: fetch with retry on 429 (rate limit)
+async function fetchWithRetry(url, options, retries = 3) {
+    for (let i = 0; i <= retries; i++) {
+        const response = await fetch(url, options);
+        if (response.status === 429 && i < retries) {
+            const wait = Math.pow(2, i + 1) * 1000; // 2s, 4s, 8s
+            console.log(`Rate limited (429), retrying in ${wait / 1000}s... (attempt ${i + 2}/${retries + 1})`);
+            await new Promise(r => setTimeout(r, wait));
+            continue;
+        }
+        return response;
+    }
+}
+
 // ============ PAGE ROUTES ============
 
 // Dashboard
@@ -657,7 +671,7 @@ app.get('/api/ai/test', async (req, res) => {
     }
     
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -705,7 +719,7 @@ app.post('/api/ai/generate', async (req, res) => {
         console.log('Calling Gemini API...');
         
         // Call Gemini API
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -776,7 +790,7 @@ app.post('/api/ai/regenerate-field', async (req, res) => {
         
         const prompt = buildFieldRegeneratePrompt(productInfo, field, currentValue);
         
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -918,7 +932,7 @@ app.get('/api/ai/test-image', async (req, res) => {
     
     // Test Imagen 4
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${GEMINI_API_KEY}`, {
+        const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -938,7 +952,7 @@ app.get('/api/ai/test-image', async (req, res) => {
     
     // Test Gemini image generation model
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${GEMINI_API_KEY}`, {
+        const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -963,7 +977,7 @@ app.get('/api/ai/test-image', async (req, res) => {
     
     // Test standard Gemini 2.0 Flash with image output
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -1019,7 +1033,7 @@ app.post('/api/ai/generate-image', async (req, res) => {
         
         // Use Gemini 2.0 Flash with image generation capability
         // First, have it analyze the reference image and generate a new one based on the prompt
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${GEMINI_API_KEY}`, {
+        const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -1054,7 +1068,7 @@ Important: Generate a photorealistic product image. The product should look exac
             console.log('Trying Imagen 4 without reference...');
             
             // First, use Gemini to describe the product from the reference image
-            const describeResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+            const describeResponse = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -1084,7 +1098,7 @@ Important: Generate a photorealistic product image. The product should look exac
             console.log('Product description:', productDescription.substring(0, 200));
             
             // Now use Imagen 4 with the detailed description
-            const imagenResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${GEMINI_API_KEY}`, {
+            const imagenResponse = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${GEMINI_API_KEY}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
