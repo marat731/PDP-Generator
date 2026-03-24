@@ -1,16 +1,11 @@
 const express = require('express');
 const path = require('path');
 const crypto = require('crypto');
-const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-// JWT secret - in production, use a strong secret from environment variables
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production-' + crypto.randomBytes(16).toString('hex');
-const JWT_EXPIRES_IN = '7d'; // Token expires in 7 days
 
 // Gemini API
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -40,254 +35,27 @@ function hashPassword(password) {
     return crypto.createHash('sha256').update(password).digest('hex');
 }
 
-// ============ AUTH MIDDLEWARE ============
+// ============ PAGE ROUTES ============
 
-function authenticateToken(req, res, next) {
-    const token = req.cookies.auth_token;
-    
-    if (!token) {
-        return res.redirect('/login');
-    }
-    
-    try {
-        const user = jwt.verify(token, JWT_SECRET);
-        req.user = user;
-        next();
-    } catch (err) {
-        res.clearCookie('auth_token');
-        return res.redirect('/login');
-    }
-}
-
-// API version of auth middleware (returns JSON instead of redirect)
-function authenticateAPI(req, res, next) {
-    const token = req.cookies.auth_token;
-    
-    if (!token) {
-        return res.status(401).json({ success: false, error: 'Not authenticated' });
-    }
-    
-    try {
-        const user = jwt.verify(token, JWT_SECRET);
-        req.user = user;
-        next();
-    } catch (err) {
-        res.clearCookie('auth_token');
-        return res.status(401).json({ success: false, error: 'Invalid token' });
-    }
-}
-
-// ============ AUTH ROUTES ============
-
-// Login page
-app.get('/login', (req, res) => {
-    // If already logged in, redirect to dashboard
-    const token = req.cookies.auth_token;
-    if (token) {
-        try {
-            jwt.verify(token, JWT_SECRET);
-            return res.redirect('/');
-        } catch (err) {
-            // Token invalid, show login page
-        }
-    }
-    res.sendFile(path.join(__dirname, 'public', 'login.html'));
-});
-
-// Login API
-app.post('/api/auth/login', async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        
-        if (!email || !password) {
-            return res.status(400).json({ success: false, error: 'Email and password required' });
-        }
-        
-        // Find user
-        const { data: user, error } = await supabase
-            .from('users')
-            .select('*')
-            .eq('email', email.toLowerCase())
-            .single();
-        
-        if (error || !user) {
-            return res.status(401).json({ success: false, error: 'Invalid email or password' });
-        }
-        
-        // Check password
-        if (hashPassword(password) !== user.password_hash) {
-            return res.status(401).json({ success: false, error: 'Invalid email or password' });
-        }
-        
-        // Generate JWT
-        const token = jwt.sign(
-            { 
-                id: user.id, 
-                email: user.email, 
-                role: user.role 
-            }, 
-            JWT_SECRET, 
-            { expiresIn: JWT_EXPIRES_IN }
-        );
-        
-        // Set cookie
-        res.cookie('auth_token', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-        });
-        
-        res.json({ 
-            success: true, 
-            user: { 
-                id: user.id, 
-                email: user.email, 
-                role: user.role 
-            } 
-        });
-    } catch (error) {
-        console.error('Login error:', error);
-        res.status(500).json({ success: false, error: 'Login failed' });
-    }
-});
-
-// Logout API
-app.post('/api/auth/logout', (req, res) => {
-    res.clearCookie('auth_token');
-    res.json({ success: true });
-});
-
-// Get current user
-app.get('/api/auth/me', (req, res) => {
-    const token = req.cookies.auth_token;
-    
-    if (!token) {
-        return res.status(401).json({ success: false, error: 'Not authenticated' });
-    }
-    
-    try {
-        const user = jwt.verify(token, JWT_SECRET);
-        res.json({ success: true, user });
-    } catch (err) {
-        res.clearCookie('auth_token');
-        res.status(401).json({ success: false, error: 'Invalid token' });
-    }
-});
-
-// ============ PASSWORD RESET ROUTES ============
-
-// Store reset tokens in memory (cleared on server restart)
-// Format: { token: { email, expiresAt } }
-const resetTokens = new Map();
-
-// Request password reset
-app.post('/api/auth/request-reset', async (req, res) => {
-    try {
-        const { email } = req.body;
-
-        if (!email) {
-            return res.status(400).json({ success: false, error: 'Email is required' });
-        }
-
-        // Check if user exists
-        const { data: user, error } = await supabase
-            .from('users')
-            .select('id, email')
-            .eq('email', email.toLowerCase())
-            .single();
-
-        // Always return success to prevent email enumeration
-        if (error || !user) {
-            return res.json({ success: true, message: 'If an account exists with that email, a reset link has been generated.' });
-        }
-
-        // Generate a secure reset token
-        const token = crypto.randomBytes(32).toString('hex');
-        const expiresAt = Date.now() + 15 * 60 * 1000; // 15 minutes
-
-        // Store the token
-        resetTokens.set(token, { email: user.email, expiresAt });
-
-        // Build reset URL
-        const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-        const host = req.get('host');
-        const resetUrl = `${protocol}://${host}/reset-password?token=${token}`;
-
-        // Log the reset link
-        console.log(`Password reset requested for ${user.email}: ${resetUrl}`);
-
-        // Return the reset URL directly (no email service configured)
-        res.json({ success: true, resetUrl, message: 'Reset link generated. It expires in 15 minutes.' });
-    } catch (error) {
-        console.error('Reset request error:', error);
-        res.status(500).json({ success: false, error: 'Failed to process reset request' });
-    }
-});
-
-// Reset password page
-app.get('/reset-password', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'reset-password.html'));
-});
-
-// Execute password reset
-app.post('/api/auth/reset-password', async (req, res) => {
-    try {
-        const { token, password } = req.body;
-
-        if (!token || !password) {
-            return res.status(400).json({ success: false, error: 'Token and new password are required' });
-        }
-
-        if (password.length < 6) {
-            return res.status(400).json({ success: false, error: 'Password must be at least 6 characters' });
-        }
-
-        // Validate token
-        const resetData = resetTokens.get(token);
-        if (!resetData) {
-            return res.status(400).json({ success: false, error: 'Invalid or expired reset token' });
-        }
-
-        if (Date.now() > resetData.expiresAt) {
-            resetTokens.delete(token);
-            return res.status(400).json({ success: false, error: 'Reset token has expired' });
-        }
-
-        // Update password
-        const { error } = await supabase
-            .from('users')
-            .update({ password_hash: hashPassword(password) })
-            .eq('email', resetData.email);
-
-        if (error) throw error;
-
-        // Invalidate the token
-        resetTokens.delete(token);
-
-        res.json({ success: true, message: 'Password has been reset successfully' });
-    } catch (error) {
-        console.error('Password reset error:', error);
-        res.status(500).json({ success: false, error: 'Failed to reset password' });
-    }
-});
-
-// ============ PROTECTED PAGE ROUTES ============
-
-// Dashboard - protected
-app.get('/', authenticateToken, (req, res) => {
+// Dashboard
+app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
 
-// Editor page - protected
-app.get('/editor', authenticateToken, (req, res) => {
+// Editor page
+app.get('/editor', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Redirect old login page to dashboard
+app.get('/login', (req, res) => {
+    res.redirect('/');
 });
 
 // ============ MOCKUPS API (Protected) ============
 
 // List all mockups (for dashboard)
-app.get('/api/mockups', authenticateAPI, async (req, res) => {
+app.get('/api/mockups', async (req, res) => {
     try {
         const { data: mockups, error } = await supabase
             .from('mockups')
@@ -324,7 +92,7 @@ app.get('/api/mockups', authenticateAPI, async (req, res) => {
 });
 
 // Create mockup - protected
-app.post('/api/mockups', authenticateAPI, async (req, res) => {
+app.post('/api/mockups', async (req, res) => {
     try {
         const { data, password } = req.body;
         const id = generateId();
@@ -438,7 +206,7 @@ app.get('/api/mockups/:id', async (req, res) => {
 });
 
 // Update mockup - protected
-app.put('/api/mockups/:id', authenticateAPI, async (req, res) => {
+app.put('/api/mockups/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const { data, password } = req.body;
@@ -463,7 +231,7 @@ app.put('/api/mockups/:id', authenticateAPI, async (req, res) => {
 });
 
 // Create new version - protected
-app.post('/api/mockups/:id/versions', authenticateAPI, async (req, res) => {
+app.post('/api/mockups/:id/versions', async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -523,7 +291,7 @@ app.post('/api/mockups/:id/versions', authenticateAPI, async (req, res) => {
 });
 
 // Delete mockup - protected
-app.delete('/api/mockups/:id', authenticateAPI, async (req, res) => {
+app.delete('/api/mockups/:id', async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -693,7 +461,7 @@ app.put('/api/mockups/:id/comments/:commentId', async (req, res) => {
 });
 
 // Delete ALL comments for a mockup - protected (designer action)
-app.delete('/api/mockups/:id/comments', authenticateAPI, async (req, res) => {
+app.delete('/api/mockups/:id/comments', async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -717,18 +485,8 @@ app.delete('/api/mockups/:id/comments/:commentId', async (req, res) => {
         const { commentId } = req.params;
         const { authorToken } = req.query;
         
-        // Check if user is authenticated (designer)
-        const token = req.cookies.auth_token;
-        let isDesigner = false;
-        if (token) {
-            try {
-                jwt.verify(token, JWT_SECRET);
-                isDesigner = true;
-            } catch (err) {}
-        }
-
-        // If not designer, check author token
-        if (!isDesigner && authorToken) {
+        // Check author token for comment ownership
+        if (authorToken) {
             const { data: existing } = await supabase
                 .from('comments')
                 .select('author_token')
@@ -738,8 +496,6 @@ app.delete('/api/mockups/:id/comments/:commentId', async (req, res) => {
             if (existing && existing.author_token !== authorToken) {
                 return res.status(403).json({ success: false, error: 'Not authorized to delete this comment' });
             }
-        } else if (!isDesigner) {
-            return res.status(403).json({ success: false, error: 'Not authorized' });
         }
 
         const { error } = await supabase
@@ -757,7 +513,7 @@ app.delete('/api/mockups/:id/comments/:commentId', async (req, res) => {
 });
 
 // Resolve comment - protected (designer action)
-app.put('/api/mockups/:id/comments/:commentId/resolve', authenticateAPI, async (req, res) => {
+app.put('/api/mockups/:id/comments/:commentId/resolve', async (req, res) => {
     try {
         const { commentId } = req.params;
         const { resolved } = req.body;
@@ -834,7 +590,7 @@ app.get('/api/mockups/:id/versions/:versionId', async (req, res) => {
     }
 });
 
-app.delete('/api/mockups/:id/versions/:versionNum', authenticateAPI, async (req, res) => {
+app.delete('/api/mockups/:id/versions/:versionNum', async (req, res) => {
     try {
         const { id, versionNum } = req.params;
 
@@ -867,7 +623,7 @@ app.delete('/api/mockups/:id/versions/:versionNum', authenticateAPI, async (req,
 // ============ AI GENERATION API ============
 
 // List available models
-app.get('/api/ai/models', authenticateAPI, async (req, res) => {
+app.get('/api/ai/models', async (req, res) => {
     if (!GEMINI_API_KEY) {
         return res.json({ success: false, error: 'GEMINI_API_KEY not set' });
     }
@@ -892,7 +648,7 @@ app.get('/api/ai/models', authenticateAPI, async (req, res) => {
 });
 
 // Test endpoint to verify Gemini API connection
-app.get('/api/ai/test', authenticateAPI, async (req, res) => {
+app.get('/api/ai/test', async (req, res) => {
     console.log('Testing Gemini API connection...');
     console.log('GEMINI_API_KEY present:', !!GEMINI_API_KEY);
     
@@ -925,7 +681,7 @@ app.get('/api/ai/test', authenticateAPI, async (req, res) => {
     }
 });
 
-app.post('/api/ai/generate', authenticateAPI, async (req, res) => {
+app.post('/api/ai/generate', async (req, res) => {
     console.log('AI Generate request received');
     console.log('GEMINI_API_KEY present:', !!GEMINI_API_KEY);
     console.log('GEMINI_API_KEY length:', GEMINI_API_KEY ? GEMINI_API_KEY.length : 0);
@@ -1010,7 +766,7 @@ app.post('/api/ai/generate', authenticateAPI, async (req, res) => {
 });
 
 // Regenerate a specific field
-app.post('/api/ai/regenerate-field', authenticateAPI, async (req, res) => {
+app.post('/api/ai/regenerate-field', async (req, res) => {
     if (!GEMINI_API_KEY) {
         return res.status(500).json({ success: false, error: 'Gemini API key not configured' });
     }
@@ -1147,7 +903,7 @@ function parseGeneratedContent(text) {
 }
 
 // Test image generation capabilities
-app.get('/api/ai/test-image', authenticateAPI, async (req, res) => {
+app.get('/api/ai/test-image', async (req, res) => {
     console.log('Testing image generation capabilities...');
     
     if (!GEMINI_API_KEY) {
@@ -1230,7 +986,7 @@ app.get('/api/ai/test-image', authenticateAPI, async (req, res) => {
 });
 
 // Image generation endpoint
-app.post('/api/ai/generate-image', authenticateAPI, async (req, res) => {
+app.post('/api/ai/generate-image', async (req, res) => {
     console.log('Image generation request received');
     
     if (!GEMINI_API_KEY) {

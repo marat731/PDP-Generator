@@ -228,29 +228,6 @@
         }
         .toast.show { display: block; }
         
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .user-email {
-            font-size: 13px;
-            opacity: 0.9;
-        }
-        .logout-btn {
-            background: rgba(255,255,255,0.15);
-            border: 1px solid rgba(255,255,255,0.3);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            cursor: pointer;
-            font-family: inherit;
-            transition: background 0.2s;
-        }
-        .logout-btn:hover {
-            background: rgba(255,255,255,0.25);
-        }
     </style>
 </head>
 <body>
@@ -259,10 +236,6 @@
             <div class="spark-icon"></div>
             Walmart PDP Mockup Generator
         </h1>
-        <div class="user-info">
-            <span class="user-email" id="userEmail"></span>
-            <button class="logout-btn" onclick="handleLogout()">Logout</button>
-        </div>
     </header>
 
     <div class="dashboard">
@@ -378,31 +351,8 @@
             setTimeout(() => toast.classList.remove('show'), 2000);
         }
         
-        async function loadUserInfo() {
-            try {
-                const res = await fetch('/api/auth/me');
-                const data = await res.json();
-                if (data.success && data.user) {
-                    document.getElementById('userEmail').textContent = data.user.email;
-                }
-            } catch (e) {
-                console.error('Error loading user:', e);
-            }
-        }
-        
-        async function handleLogout() {
-            try {
-                await fetch('/api/auth/logout', { method: 'POST' });
-                window.location.href = '/login';
-            } catch (e) {
-                console.error('Logout error:', e);
-                window.location.href = '/login';
-            }
-        }
-
         // Load on page load
         loadMockups();
-        loadUserInfo();
     </script>
 </body>
 </html>
