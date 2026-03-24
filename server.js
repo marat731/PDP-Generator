@@ -175,6 +175,106 @@ app.get('/api/auth/me', (req, res) => {
     }
 });
 
+// ============ PASSWORD RESET ROUTES ============
+
+// Store reset tokens in memory (cleared on server restart)
+// Format: { token: { email, expiresAt } }
+const resetTokens = new Map();
+
+// Request password reset
+app.post('/api/auth/request-reset', async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ success: false, error: 'Email is required' });
+        }
+
+        // Check if user exists
+        const { data: user, error } = await supabase
+            .from('users')
+            .select('id, email')
+            .eq('email', email.toLowerCase())
+            .single();
+
+        // Always return success to prevent email enumeration
+        if (error || !user) {
+            return res.json({ success: true, message: 'If an account exists with that email, a reset link has been generated.' });
+        }
+
+        // Generate a secure reset token
+        const token = crypto.randomBytes(32).toString('hex');
+        const expiresAt = Date.now() + 15 * 60 * 1000; // 15 minutes
+
+        // Store the token
+        resetTokens.set(token, { email: user.email, expiresAt });
+
+        // Build reset URL
+        const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+        const host = req.get('host');
+        const resetUrl = `${protocol}://${host}/reset-password?token=${token}`;
+
+        // Log the reset link (in production, this would be sent via email)
+        console.log(`\n========== PASSWORD RESET ==========`);
+        console.log(`Email: ${user.email}`);
+        console.log(`Reset URL: ${resetUrl}`);
+        console.log(`Expires in 15 minutes`);
+        console.log(`====================================\n`);
+
+        res.json({ success: true, message: 'If an account exists with that email, a reset link has been generated.' });
+    } catch (error) {
+        console.error('Reset request error:', error);
+        res.status(500).json({ success: false, error: 'Failed to process reset request' });
+    }
+});
+
+// Reset password page
+app.get('/reset-password', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'reset-password.html'));
+});
+
+// Execute password reset
+app.post('/api/auth/reset-password', async (req, res) => {
+    try {
+        const { token, password } = req.body;
+
+        if (!token || !password) {
+            return res.status(400).json({ success: false, error: 'Token and new password are required' });
+        }
+
+        if (password.length < 6) {
+            return res.status(400).json({ success: false, error: 'Password must be at least 6 characters' });
+        }
+
+        // Validate token
+        const resetData = resetTokens.get(token);
+        if (!resetData) {
+            return res.status(400).json({ success: false, error: 'Invalid or expired reset token' });
+        }
+
+        if (Date.now() > resetData.expiresAt) {
+            resetTokens.delete(token);
+            return res.status(400).json({ success: false, error: 'Reset token has expired' });
+        }
+
+        // Update password
+        const { error } = await supabase
+            .from('users')
+            .update({ password_hash: hashPassword(password) })
+            .eq('email', resetData.email);
+
+        if (error) throw error;
+
+        // Invalidate the token
+        resetTokens.delete(token);
+
+        res.json({ success: true, message: 'Password has been reset successfully' });
+    } catch (error) {
+        console.error('Password reset error:', error);
+        res.status(500).json({ success: false, error: 'Failed to reset password' });
+    }
+});
+
 // ============ PROTECTED PAGE ROUTES ============
 
 // Dashboard - protected
