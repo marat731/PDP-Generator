@@ -270,8 +270,12 @@
 
                 const result = await response.json();
 
-                if (result.success) {
-                    successMsg.textContent = 'If an account exists with that email, a reset link has been generated. Check with your server administrator for the reset link.';
+                if (result.success && result.resetUrl) {
+                    successMsg.innerHTML = 'Reset link generated! <a href="' + result.resetUrl + '" style="color: #16a34a; font-weight: 600;">Click here to reset your password</a><br><small style="color: #74767c;">This link expires in 15 minutes.</small>';
+                    successMsg.style.display = 'block';
+                    document.getElementById('resetRequestForm').style.display = 'none';
+                } else if (result.success) {
+                    successMsg.textContent = 'If an account exists with that email, a reset link would be sent. No matching account was found.';
                     successMsg.style.display = 'block';
                     document.getElementById('resetRequestForm').style.display = 'none';
                 } else {
