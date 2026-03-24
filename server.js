@@ -214,14 +214,11 @@ app.post('/api/auth/request-reset', async (req, res) => {
         const host = req.get('host');
         const resetUrl = `${protocol}://${host}/reset-password?token=${token}`;
 
-        // Log the reset link (in production, this would be sent via email)
-        console.log(`\n========== PASSWORD RESET ==========`);
-        console.log(`Email: ${user.email}`);
-        console.log(`Reset URL: ${resetUrl}`);
-        console.log(`Expires in 15 minutes`);
-        console.log(`====================================\n`);
+        // Log the reset link
+        console.log(`Password reset requested for ${user.email}: ${resetUrl}`);
 
-        res.json({ success: true, message: 'If an account exists with that email, a reset link has been generated.' });
+        // Return the reset URL directly (no email service configured)
+        res.json({ success: true, resetUrl, message: 'Reset link generated. It expires in 15 minutes.' });
     } catch (error) {
         console.error('Reset request error:', error);
         res.status(500).json({ success: false, error: 'Failed to process reset request' });
