@@ -112,15 +112,6 @@
         .btn-new-version:hover {
             background: #f57c00;
         }
-        .btn-logout {
-            background: rgba(0,0,0,0.1);
-            color: white;
-            padding: 12px 14px;
-            font-size: 16px;
-        }
-        .btn-logout:hover {
-            background: rgba(0,0,0,0.2);
-        }
         .btn-ai {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -1443,7 +1434,6 @@
             </button>
             <a href="/" class="btn btn-secondary">← Dashboard</a>
             <button class="btn btn-primary" onclick="saveMockup()">Save & Share</button>
-            <button class="btn btn-logout" onclick="handleLogout()" title="Logout">🚪</button>
         </div>
     </div>
 
@@ -2806,15 +2796,6 @@ The more detail you provide, the better the results!"></textarea>
             window.open(`/api/mockups/${currentMockupId}/versions/${versionId}`, '_blank');
         }
         
-        async function handleLogout() {
-            try {
-                await fetch('/api/auth/logout', { method: 'POST' });
-                window.location.href = '/login';
-            } catch (e) {
-                console.error('Logout error:', e);
-                window.location.href = '/login';
-            }
-        }
 
         // ========== AI ASSISTANT ==========
         let generatedContent = null;
